@@ -1,134 +1,158 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import { useParams, Link } from "react-router-dom";
-import { SUBJECTS_BY_LEVEL, TERMS, ACADEMIC_YEARS, getGrade, getAverage, getOverallRemark } from "../utils/grading";
+import { GENERAL_SUBJECTS, SPECIALTIES, SEQUENCES, TERMS, getGrade, getOverallRemark } from "../utils/grading";
 
 export default function ReportCard() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
-  const [term, setTerm] = useState("First Term");
-  const [year, setYear] = useState("2025/2026");
-  const [scores, setScores] = useState({});
+  const [allScores, setAllScores] = useState({});
   const [loading, setLoading] = useState(true);
+  const [year, setYear] = useState("2026/2027");
+  const [lang, setLang] = useState("both");
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchAll = async () => {
+      setLoading(true);
       const snap = await getDoc(doc(db, "students", id));
       if (snap.exists()) setStudent({ id: snap.id, ...snap.data() });
+      const sd = {};
+      for (const seq of SEQUENCES) {
+        const key = year.replace(/[/]/g, "-") + "_" + seq.replace(/ /g, "_");
+        const s = await getDoc(doc(db, "scores", id + "_" + key));
+        if (s.exists()) sd[seq] = s.data().scores || {};
+      }
+      setAllScores(sd);
       setLoading(false);
     };
-    fetch();
-  }, [id]);
+    fetchAll();
+  }, [id, year]);
 
-  useEffect(() => {
-    const fetchScores = async () => {
-      if (!student) return;
-      const key = `${year}_${term}`.replace(/\//g, "-").replace(/ /g, "_");
-      const snap = await getDoc(doc(db, "scores", `${id}_${key}`));
-      setScores(snap.exists() ? snap.data().scores || {} : {});
-    };
-    fetchScores();
-  }, [student, term, year, id]);
+  if (loading) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#94a3b8"}}>Loading...</div>;
+  if (student === null) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#94a3b8"}}>Student not found.</div>;
 
-  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Loading...</div>;
-  if (!student) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Student not found.</div>;
-
-  const subjects = SUBJECTS_BY_LEVEL[student.level] || [];
-  const filledScores = subjects.map((s) => scores[s] ?? "");
-  const avg = getAverage(filledScores.filter((s) => s !== "").map(Number));
-  const { grade: avgGrade, remark: avgRemark, color: avgColor } = getGrade(avg);
-  const overall = getOverallRemark(avg);
-  const totalScore = filledScores.filter((s) => s !== "").reduce((a, b) => a + parseFloat(b), 0);
-  const maxPossible = filledScores.filter((s) => s !== "").length * 20;
+  const subjects = [...GENERAL_SUBJECTS, ...(SPECIALTIES[student.specialty] || [])];
+  const getScore = (subj, seq) => allScores[seq]?.[subj] ?? "";
+  const getTermAvg = (subj, termName) => {
+    const vals = TERMS[termName].map(s => getScore(subj, s)).filter(v => v !== "");
+    if (vals.length === 0) return "";
+    return (vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(1);
+  };
+  const getAnnual = (subj) => {
+    const vals = SEQUENCES.map(s => getScore(subj, s)).filter(v => v !== "");
+    if (vals.length === 0) return "";
+    return (vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(1);
+  };
+  const getOverallAvg = () => {
+    const vals = subjects.map(s => getAnnual(s)).filter(v => v !== "");
+    if (vals.length === 0) return null;
+    return (vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(2);
+  };
+  const overall = getOverallAvg();
+  const remark = getOverallRemark(overall ? parseFloat(overall) : null);
+  const th = { padding:"6px 8px", fontSize:"11px", color:"#94a3b8", fontWeight:"600", borderBottom:"1px solid rgba(255,255,255,0.08)", whiteSpace:"nowrap", background:"rgba(234,179,8,0.08)", textAlign:"center" };
+  const td = { padding:"6px 8px", fontSize:"11px", borderBottom:"1px solid rgba(255,255,255,0.04)", color:"#cbd5e1", textAlign:"center" };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <nav className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="text-slate-400 hover:text-white text-sm">← Back</Link>
-          <span className="font-bold text-white">Report Card</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <select value={year} onChange={(e) => setYear(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-500">
-            {ACADEMIC_YEARS.map((y) => <option key={y}>{y}</option>)}
+    <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
+      <nav style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"}}>
+        <Link to="/" style={{color:"#94a3b8",fontSize:"13px",textDecoration:"none"}}>Back</Link>
+        <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
+          <select value={year} onChange={e=>setYear(e.target.value)} style={{padding:"6px 10px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"12px"}}>
+            {["2024/2025","2025/2026","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
           </select>
-          <select value={term} onChange={(e) => setTerm(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-amber-500">
-            {TERMS.map((t) => <option key={t}>{t}</option>)}
+          <select value={lang} onChange={e=>setLang(e.target.value)} style={{padding:"6px 10px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"12px"}}>
+            <option value="both">EN + FR</option>
+            <option value="en">English Only</option>
+            <option value="fr">Francais Seulement</option>
           </select>
-          <button onClick={() => window.print()}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition-colors">
-            Print / PDF
-          </button>
+          <button onClick={()=>window.print()} style={{padding:"6px 14px",background:"#eab308",border:"none",borderRadius:"6px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>Print</button>
         </div>
       </nav>
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="bg-white text-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-          <div className="bg-slate-900 text-white px-8 py-6 text-center">
-            <h1 className="text-xl font-black">Government Bilingual High School</h1>
-            <p className="text-slate-300 text-xs">Bamenda, North West Region · Cameroon</p>
-            <div className="mt-3 pt-3 border-t border-slate-700">
-              <h2 className="text-lg font-bold text-amber-400">STUDENT REPORT CARD</h2>
-              <p className="text-slate-300 text-sm">{year} · {term}</p>
-            </div>
+      <div style={{maxWidth:"1000px",margin:"0 auto",padding:"20px"}}>
+        <div style={{background:"linear-gradient(135deg,#0d1b3e,#1a3a6e)",padding:"20px",textAlign:"center",borderRadius:"12px 12px 0 0",borderBottom:"3px solid #eab308"}}>
+          <h1 style={{color:"#eab308",fontSize:"20px",margin:"0 0 4px",fontWeight:"bold"}}>SUNRISE COLLEGE</h1>
+          <p style={{color:"#94a3b8",fontSize:"12px",margin:"0 0 2px"}}>Mile 8 Mankon, Bamenda, North West Region</p>
+          <h2 style={{color:"#fff",fontSize:"15px",margin:"8px 0 0",fontWeight:"bold"}}>
+            {lang==="fr" ? "BULLETIN DE NOTES" : lang==="en" ? "STUDENT REPORT CARD" : "STUDENT REPORT CARD / BULLETIN DE NOTES"}
+          </h2>
+          <p style={{color:"#eab308",fontSize:"12px",margin:"4px 0 0"}}>
+            {lang==="fr" ? "Annee Scolaire" : "Academic Year"}: {year}
+          </p>
+        </div>
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderTop:"none",padding:"16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"16px"}}>
+          <div>
+            <p style={{fontSize:"12px",color:"#94a3b8",margin:"0 0 4px"}}>{lang==="fr"?"Nom":"Name"}: <strong style={{color:"#fff"}}>{student.name}</strong></p>
+            <p style={{fontSize:"12px",color:"#94a3b8",margin:"0 0 4px"}}>{lang==="fr"?"Classe":"Class"}: <strong style={{color:"#fff"}}>{student.level} - {student.classSection}</strong></p>
+            <p style={{fontSize:"12px",color:"#94a3b8",margin:"0 0 4px"}}>{lang==="fr"?"Sexe":"Gender"}: <strong style={{color:"#fff"}}>{student.gender}</strong></p>
           </div>
-          <div className="px-8 py-5 bg-gray-50 border-b border-gray-200 grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[["Student Name",student.name],["Class",student.classSection],["Level",student.level],["Admission No.",student.admissionNumber||"—"],["Gender",student.gender],["Date of Birth",student.dateOfBirth||"—"]].map(([label,value])=>(
-              <div key={label}>
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">{label}</p>
-                <p className="font-bold text-gray-900">{value}</p>
-              </div>
-            ))}
-          </div>
-          <div className="px-8 py-6">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-900 text-white">
-                  <th className="text-left px-4 py-3 font-semibold">Subject</th>
-                  <th className="text-center px-4 py-3 font-semibold">Score (/20)</th>
-                  <th className="text-center px-4 py-3 font-semibold">%</th>
-                  <th className="text-center px-4 py-3 font-semibold">Grade</th>
-                  <th className="text-left px-4 py-3 font-semibold">Remark</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subjects.map((subject, i) => {
-                  const score = scores[subject] ?? "";
-                  const { grade, remark, percent } = getGrade(score);
-                  return (
-                    <tr key={subject} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-4 py-3 font-medium text-gray-900">{subject}</td>
-                      <td className="px-4 py-3 text-center font-bold text-gray-900">{score !== "" ? score : "—"}</td>
-                      <td className="px-4 py-3 text-center text-gray-600">{score !== "" ? `${percent.toFixed(1)}%` : "—"}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`font-black text-base ${grade==="A"?"text-emerald-600":grade==="B"?"text-blue-600":grade==="C"?"text-cyan-600":grade==="D"?"text-yellow-600":grade==="E"?"text-orange-600":grade==="F"?"text-red-600":"text-gray-400"}`}>{grade}</span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{remark}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-8 pb-8">
-            <div className="bg-slate-900 text-white rounded-xl p-6 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-              <div><p className="text-slate-400 text-xs uppercase mb-1">Total Score</p><p className="text-2xl font-black text-amber-400">{totalScore.toFixed(1)}</p><p className="text-slate-400 text-xs">out of {maxPossible}</p></div>
-              <div><p className="text-slate-400 text-xs uppercase mb-1">Average</p><p className="text-2xl font-black text-white">{avg.toFixed(2)}</p><p className="text-slate-400 text-xs">out of 20</p></div>
-              <div><p className="text-slate-400 text-xs uppercase mb-1">Grade</p><p className={`text-2xl font-black ${avgColor}`}>{avgGrade}</p><p className="text-slate-400 text-xs">{avgRemark}</p></div>
-              <div><p className="text-slate-400 text-xs uppercase mb-1">Overall</p><p className="text-sm font-bold text-white leading-tight">{overall}</p></div>
-            </div>
-          </div>
-          <div className="px-8 pb-8 grid grid-cols-3 gap-8">
-            {["Class Teacher","Principal","Parent / Guardian"].map((role)=>(
-              <div key={role} className="text-center"><div className="border-t-2 border-gray-300 pt-2 mt-8"><p className="text-xs text-gray-500">{role}</p></div></div>
-            ))}
-          </div>
-          <div className="bg-gray-100 px-8 py-3 text-center">
-            <p className="text-xs text-gray-400">Generated by ReportCard Pro · Powered by Suh Ebook Empire</p>
+          <div>
+            <p style={{fontSize:"12px",color:"#94a3b8",margin:"0 0 4px"}}>{lang==="fr"?"N Matricule":"Admission No."}: <strong style={{color:"#eab308"}}>{student.admissionNumber||"-"}</strong></p>
+            <p style={{fontSize:"12px",color:"#94a3b8",margin:"0 0 4px"}}>Section: <strong style={{color:"#fff"}}>{student.section||"Grammar"}</strong></p>
+            {student.specialty && <p style={{fontSize:"12px",color:"#94a3b8",margin:"0 0 4px"}}>{lang==="fr"?"Specialite":"Specialty"}: <strong style={{color:"#fff",fontSize:"11px"}}>{student.specialty}</strong></p>}
           </div>
         </div>
+        <div style={{overflowX:"auto",marginBottom:"16px"}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <thead>
+              <tr>
+                <th style={{...th,textAlign:"left",minWidth:"140px"}}>{lang==="fr"?"Matiere":"Subject"}</th>
+                {SEQUENCES.map(s=><th key={s} style={th}>{s.replace("Sequence ","Seq ")}</th>)}
+                <th style={{...th,background:"rgba(59,130,246,0.1)"}}>T1</th>
+                <th style={{...th,background:"rgba(59,130,246,0.1)"}}>T2</th>
+                <th style={{...th,background:"rgba(59,130,246,0.1)"}}>T3</th>
+                <th style={{...th,background:"rgba(16,185,129,0.1)"}}>{lang==="fr"?"Moy.":"Annual"}</th>
+                <th style={{...th,background:"rgba(16,185,129,0.1)"}}>Grade</th>
+                <th style={{...th,background:"rgba(16,185,129,0.1)"}}>{lang==="fr"?"Appreciation":"Remark"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subjects.map((subj,i)=>{
+                const annual=getAnnual(subj);
+                const g=getGrade(annual);
+                return (
+                  <tr key={subj} style={{background:i%2===0?"rgba(255,255,255,0.02)":"transparent"}}>
+                    <td style={{...td,textAlign:"left",fontWeight:"500",color:"#e2e8f0"}}>{subj}</td>
+                    {SEQUENCES.map(s=>{
+                      const sc=getScore(subj,s);
+                      return <td key={s} style={{...td,color:sc?getGrade(sc).color:"#374151"}}>{sc||"-"}</td>;
+                    })}
+                    {Object.keys(TERMS).map(t=>{
+                      const avg=getTermAvg(subj,t);
+                      return <td key={t} style={{...td,color:avg?getGrade(avg).color:"#374151",background:"rgba(59,130,246,0.03)"}}>{avg||"-"}</td>;
+                    })}
+                    <td style={{...td,fontWeight:"bold",color:g.color,background:"rgba(16,185,129,0.03)"}}>{annual||"-"}</td>
+                    <td style={{...td,fontWeight:"bold",color:g.color,background:"rgba(16,185,129,0.03)"}}>{annual?g.grade:"-"}</td>
+                    <td style={{...td,color:g.color,background:"rgba(16,185,129,0.03)",fontSize:"10px"}}>
+                      {annual?(lang==="fr"?g.remarkFr:lang==="en"?g.remark:g.remark+" / "+g.remarkFr):"-"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr style={{background:"rgba(234,179,8,0.08)",fontWeight:"bold"}}>
+                <td style={{...td,textAlign:"left",color:"#eab308",fontWeight:"bold"}}>{lang==="fr"?"MOYENNE GENERALE":"OVERALL AVERAGE"}</td>
+                {SEQUENCES.map(s=><td key={s} style={td}></td>)}
+                <td style={td}></td><td style={td}></td><td style={td}></td>
+                <td style={{...td,color:"#eab308",fontSize:"14px",fontWeight:"bold"}}>{overall||"-"}</td>
+                <td style={{...td,color:overall?getGrade(overall).color:"#374151",fontWeight:"bold"}}>{overall?getGrade(overall).grade:"-"}</td>
+                <td style={{...td,color:"#eab308",fontSize:"10px"}}>{overall?(lang==="fr"?remark.fr:lang==="en"?remark.en:remark.en+" / "+remark.fr):"-"}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px",marginBottom:"16px"}}>
+          {[lang==="fr"?"Signature Directeur":"Principal",lang==="fr"?"Prof. Principal":"Class Teacher",lang==="fr"?"Parent/Tuteur":"Parent/Guardian"].map(label=>(
+            <div key={label} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"8px",padding:"12px",textAlign:"center"}}>
+              <p style={{fontSize:"11px",color:"#64748b",margin:"0 0 4px"}}>{label}</p>
+              <div style={{height:"40px",borderBottom:"1px solid rgba(255,255,255,0.1)",marginBottom:"4px"}}></div>
+              <p style={{fontSize:"10px",color:"#475569",margin:0}}>Signature</p>
+            </div>
+          ))}
+        </div>
+        <p style={{textAlign:"center",fontSize:"10px",color:"#334155"}}>Powered by ReportCard Pro - Suh Ebook Empire</p>
       </div>
     </div>
   );
