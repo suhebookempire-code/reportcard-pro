@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import AddStudent from "./pages/AddStudent";
 import EnterScores from "./pages/EnterScores";
 import ReportCard from "./pages/ReportCard";
+import MasterAdmin from "./pages/MasterAdmin";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -18,6 +19,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/master" element={<MasterAdmin />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/add-student" element={<ProtectedRoute><AddStudent /></ProtectedRoute>} />
           <Route path="/enter-scores/:id" element={<ProtectedRoute><EnterScores /></ProtectedRoute>} />
