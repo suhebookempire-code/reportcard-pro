@@ -17,85 +17,86 @@ export default function Dashboard() {
       try {
         const q = query(collection(db, "students"), orderBy("name"));
         const snap = await getDocs(q);
-        setStudents(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      } catch (e) { console.error(e); }
+        setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch(e) { console.error(e); }
       setLoading(false);
     };
     fetchStudents();
   }, []);
 
-  const handleLogout = async () => { await logout(); navigate("/"); };
-  const filtered = filterLevel === "All" ? students : students.filter((s) => s.level === filterLevel);
+  const handleLogout = async () => { await logout(); navigate("/login"); };
+  const filtered = filterLevel === "All" ? students : students.filter(s => s.level === filterLevel);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <nav className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
-            <span className="text-sm font-black text-slate-950">RC</span>
+    <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
+      <nav style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"0 20px",display:"flex",alignItems:"center",justifyContent:"space-between",height:"56px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+          <div style={{width:"36px",height:"36px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#0a0f1e",fontSize:"14px"}}>RC</div>
+          <div>
+            <div style={{fontSize:"13px",fontWeight:"bold",color:"#fff"}}>ReportCard Pro</div>
+            <div style={{fontSize:"10px",color:"#64748b"}}>{user?.email}</div>
           </div>
-          <span className="font-bold text-white">ReportCard Pro</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-slate-400 text-sm hidden sm:block">{user?.email}</span>
-          <Link to="/add-student" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition-colors">+ Add Student</Link>
-          <button onClick={handleLogout} className="text-slate-400 hover:text-white text-sm transition-colors">Logout</button>
+        <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
+          <Link to="/add-student" style={{padding:"7px 14px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",textDecoration:"none"}}>+ Add Student</Link>
+          <Link to="/teachers" style={{padding:"7px 14px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none"}}>Teachers</Link>
+          <button onClick={handleLogout} style={{padding:"7px 14px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>Logout</button>
         </div>
       </nav>
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-slate-400 text-xs mb-1">Total Students</p>
-            <p className="text-3xl font-black text-amber-500">{students.length}</p>
-          </div>
-          {["Form 1","Form 3","Form 5"].map((l) => (
-            <div key={l} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-slate-400 text-xs mb-1">{l}</p>
-              <p className="text-3xl font-black text-white">{students.filter((s) => s.level === l).length}</p>
+
+      <div style={{maxWidth:"1000px",margin:"0 auto",padding:"20px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"12px",marginBottom:"20px"}}>
+          {[
+            {label:"Total Students",value:students.length,color:"#eab308"},
+            {label:"Grammar",value:students.filter(s=>s.section==="Grammar").length,color:"#3b82f6"},
+            {label:"Technical",value:students.filter(s=>s.section==="Technical").length,color:"#10b981"},
+            {label:"Classes",value:[...new Set(students.map(s=>s.level))].length,color:"#8b5cf6"},
+          ].map(stat=>(
+            <div key={stat.label} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"16px",display:"flex",alignItems:"center",gap:"12px"}}>
+              <div style={{fontSize:"28px",fontWeight:"bold",color:stat.color}}>{stat.value}</div>
+              <div style={{fontSize:"12px",color:"#64748b"}}>{stat.label}</div>
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-2 mb-6 flex-wrap">
-          <span className="text-slate-400 text-sm">Filter:</span>
-          {["All",...LEVELS].map((l) => (
-            <button key={l} onClick={() => setFilterLevel(l)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${filterLevel === l ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+
+        <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
+          <span style={{fontSize:"12px",color:"#64748b",alignSelf:"center"}}>Filter:</span>
+          {["All",...LEVELS].map(l=>(
+            <button key={l} onClick={()=>setFilterLevel(l)} style={{padding:"5px 12px",background:filterLevel===l?"#eab308":"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"20px",color:filterLevel===l?"#0a0f1e":"#94a3b8",fontSize:"12px",cursor:"pointer",fontWeight:filterLevel===l?"bold":"normal"}}>
               {l}
             </button>
           ))}
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-800">
-            <h2 className="font-bold text-white">Students ({filtered.length})</h2>
+
+        <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"12px",overflow:"hidden"}}>
+          <div style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <span style={{fontWeight:"bold",color:"#fff",fontSize:"14px"}}>Students ({filtered.length})</span>
           </div>
           {loading ? (
-            <div className="p-12 text-center text-slate-500">Loading students...</div>
+            <div style={{padding:"40px",textAlign:"center",color:"#475569"}}>Loading...</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-slate-500 mb-4">No students found</p>
-              <Link to="/add-student" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2.5 rounded-lg text-sm transition-colors">Add First Student</Link>
+            <div style={{padding:"40px",textAlign:"center"}}>
+              <p style={{color:"#475569",marginBottom:"12px"}}>No students found</p>
+              <Link to="/add-student" style={{padding:"10px 20px",background:"#eab308",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"13px",textDecoration:"none"}}>Add First Student</Link>
             </div>
-          ) : (
-            <div className="divide-y divide-slate-800">
-              {filtered.map((student) => (
-                <div key={student.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-amber-500">
-                      {student.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">{student.name}</p>
-                      <p className="text-slate-400 text-sm">{student.level} · {student.classSection}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Link to={`/report/${student.id}`} className="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">View Report</Link>
-                    <Link to={`/enter-scores/${student.id}`} className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Enter Scores</Link>
-                  </div>
+          ) : filtered.map(student=>(
+            <div key={student.id} style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,0.04)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                <div style={{width:"36px",height:"36px",borderRadius:"50%",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:"bold",color:"#eab308"}}>
+                  {student.name?.charAt(0).toUpperCase()}
                 </div>
-              ))}
+                <div>
+                  <div style={{fontSize:"14px",fontWeight:"bold",color:"#fff"}}>{student.name}</div>
+                  <div style={{fontSize:"11px",color:"#64748b"}}>{student.level} · {student.classSection} · {student.section||"Grammar"}</div>
+                  {student.specialty && <div style={{fontSize:"10px",color:"#475569"}}>{student.specialty}</div>}
+                </div>
+              </div>
+              <div style={{display:"flex",gap:"8px"}}>
+                <Link to={"/enter-scores/"+student.id} style={{padding:"6px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.2)",borderRadius:"6px",color:"#eab308",fontSize:"11px",textDecoration:"none",fontWeight:"bold"}}>Enter Scores</Link>
+                <Link to={"/report/"+student.id} style={{padding:"6px 12px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"6px",color:"#94a3b8",fontSize:"11px",textDecoration:"none"}}>View Report</Link>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>
