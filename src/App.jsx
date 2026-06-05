@@ -8,6 +8,8 @@ import ReportCard from "./pages/ReportCard";
 import MasterAdmin from "./pages/MasterAdmin";
 import TeacherPortal from "./pages/TeacherPortal";
 import Teachers from "./pages/Teachers";
+import Classes from "./pages/Classes";
+import ClassList from "./pages/ClassList";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -23,11 +25,13 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/master" element={<MasterAdmin />} />
           <Route path="/teacher/:token" element={<TeacherPortal />} />
+          <Route path="/class/:token" element={<ClassList />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/add-student" element={<ProtectedRoute><AddStudent /></ProtectedRoute>} />
           <Route path="/enter-scores/:id" element={<ProtectedRoute><EnterScores /></ProtectedRoute>} />
           <Route path="/report/:id" element={<ProtectedRoute><ReportCard /></ProtectedRoute>} />
           <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
+          <Route path="/classes" element={<ProtectedRoute><Classes /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
