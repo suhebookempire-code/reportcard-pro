@@ -1,86 +1,88 @@
-import { useState } from 'react';
-import { db } from '../firebase/config';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useNavigate, Link } from 'react-router-dom';
-import { LEVELS, SPECIALTIES } from '../utils/grading';
+import { useState } from "react";
+import { db } from "../firebase/config";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { LEVELS, SPECIALTIES } from "../utils/grading";
 
 export default function AddStudent() {
+  const { user, school } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name:'', level:'Form 1', classSection:'', admissionNumber:'', gender:'Male', dateOfBirth:'', section:'Grammar', specialty:'' });
+  const schoolId = school?.id || user?.uid;
+  const [form, setForm] = useState({ name:"", level:"Form 1", classSection:"", admissionNumber:"", gender:"Male", dateOfBirth:"", section:"Grammar", specialty:"" });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (!form.name || !form.classSection) { setError("Name and Class Section are required."); return; }
     setLoading(true);
     try {
-      await addDoc(collection(db, 'students'), { ...form, createdAt: serverTimestamp() });
-      navigate('/');
-    } catch (err) { setError('Failed to add student. Please try again.'); }
+      await addDoc(collection(db, "students"), { ...form, schoolId, schoolName: school?.name || "", createdAt: serverTimestamp() });
+      navigate("/");
+    } catch(err) { setError("Failed to add student."); }
     setLoading(false);
   };
 
   return (
-    <div className='min-h-screen bg-slate-950 text-white'>
-      <nav className='bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center gap-4'>
-        <Link to='/' className='text-slate-400 hover:text-white text-sm'>← Back</Link>
-        <span className='font-bold text-white'>Add New Student</span>
+    <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
+      <nav style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"12px 20px",display:"flex",alignItems:"center",gap:"12px"}}>
+        <Link to="/" style={{color:"#94a3b8",fontSize:"13px",textDecoration:"none"}}>← Back</Link>
+        <span style={{fontWeight:"bold",color:"#fff",fontSize:"14px"}}>Add New Student / Ajouter un Eleve</span>
       </nav>
-      <div className='max-w-xl mx-auto px-4 py-10'>
-        <div className='bg-slate-900 border border-slate-800 rounded-2xl p-8'>
-          {error && <div className='bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-6'>{error}</div>}
-          <form onSubmit={handleSubmit} className='space-y-5'>
+      <div style={{maxWidth:"560px",margin:"0 auto",padding:"20px 16px"}}>
+        {error && <div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",padding:"10px",marginBottom:"16px",color:"#fca5a5",fontSize:"13px"}}>{error}</div>}
+        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"20px"}}>
+          <div style={{marginBottom:"12px"}}>
+            <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Full Name *</label>
+            <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Neba Gerald Fru" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box"}} />
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginBottom:"12px"}}>
             <div>
-              <label className='block text-sm font-medium text-slate-300 mb-1.5'>Full Name *</label>
-              <input name='name' value={form.name} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500' placeholder='e.g. Neba Gerald Fru' required />
-            </div>
-            <div className='grid grid-cols-2 gap-4'>
-              <div>
-                <label className='block text-sm font-medium text-slate-300 mb-1.5'>Level *</label>
-                <select name='level' value={form.level} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500'>
-                  {LEVELS.map(l => <option key={l}>{l}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className='block text-sm font-medium text-slate-300 mb-1.5'>Gender</label>
-                <select name='gender' value={form.gender} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500'>
-                  <option>Male</option><option>Female</option>
-                </select>
-              </div>
-            </div>
-            <div className='grid grid-cols-2 gap-4'>
-              <div>
-                <label className='block text-sm font-medium text-slate-300 mb-1.5'>Class Section *</label>
-                <input name='classSection' value={form.classSection} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500' placeholder='e.g. Form 1A' required />
-              </div>
-              <div>
-                <label className='block text-sm font-medium text-slate-300 mb-1.5'>Admission No.</label>
-                <input name='admissionNumber' value={form.admissionNumber} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500' placeholder='e.g. 2026/001' />
-              </div>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Level *</label>
+              <select value={form.level} onChange={e=>setForm(f=>({...f,level:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
+                {LEVELS.map(l=><option key={l}>{l}</option>)}
+              </select>
             </div>
             <div>
-              <label className='block text-sm font-medium text-slate-300 mb-1.5'>Section</label>
-              <select name='section' value={form.section} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500'>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Gender</label>
+              <select value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
+                <option>Male</option><option>Female</option>
+              </select>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginBottom:"12px"}}>
+            <div>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Class Section *</label>
+              <input value={form.classSection} onChange={e=>setForm(f=>({...f,classSection:e.target.value}))} placeholder="e.g. Form 1A" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box"}} />
+            </div>
+            <div>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Admission No.</label>
+              <input value={form.admissionNumber} onChange={e=>setForm(f=>({...f,admissionNumber:e.target.value}))} placeholder="e.g. 2026/001" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box"}} />
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginBottom:"12px"}}>
+            <div>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Section</label>
+              <select value={form.section} onChange={e=>setForm(f=>({...f,section:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
                 <option>Grammar</option><option>Technical</option>
               </select>
             </div>
             <div>
-              <label className='block text-sm font-medium text-slate-300 mb-1.5'>Specialty (Technical students)</label>
-              <select name='specialty' value={form.specialty} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500'>
-                <option value=''>-- Select Specialty --</option>
-                {Object.keys(SPECIALTIES).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Date of Birth</label>
+              <input type="date" value={form.dateOfBirth} onChange={e=>setForm(f=>({...f,dateOfBirth:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}} />
             </div>
-            <div>
-              <label className='block text-sm font-medium text-slate-300 mb-1.5'>Date of Birth</label>
-              <input type='date' name='dateOfBirth' value={form.dateOfBirth} onChange={handleChange} className='w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500' />
-            </div>
-            <button type='submit' disabled={loading} className='w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-lg text-sm disabled:opacity-60'>
-              {loading ? 'Adding Student...' : 'Add Student'}
-            </button>
-          </form>
+          </div>
+          <div style={{marginBottom:"16px"}}>
+            <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Specialty (Technical only)</label>
+            <select value={form.specialty} onChange={e=>setForm(f=>({...f,specialty:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
+              <option value="">-- Select Specialty --</option>
+              {Object.keys(SPECIALTIES).map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div style={{display:"flex",gap:"8px"}}>
+            <button onClick={handleSubmit} disabled={loading} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"14px",cursor:"pointer"}}>{loading?"Saving...":"Save Student"}</button>
+            <Link to="/" style={{padding:"12px 20px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#94a3b8",fontSize:"13px",textDecoration:"none",display:"flex",alignItems:"center"}}>Cancel</Link>
+          </div>
         </div>
       </div>
     </div>
