@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/config";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const MASTER_PASSWORD = "Suebem2040";
+const schoolAuth = getAuth();
 const APP_URL = "https://reportcard-pro-suhebookempires-projects.vercel.app";
 
 export default function MasterAdmin() {
@@ -16,6 +18,8 @@ export default function MasterAdmin() {
   const [deleting, setDeleting] = useState("");
   const [msg, setMsg] = useState("");
   const [copied, setCopied] = useState("");
+  const [creatingAdmin, setCreatingAdmin] = useState("");
+  const [adminMsg, setAdminMsg] = useState("");
 
   useEffect(() => { if (isAuth) fetchSchools(); }, [isAuth]);
 
@@ -52,6 +56,27 @@ export default function MasterAdmin() {
     await deleteDoc(doc(db, "schools", id));
     await fetchSchools();
     setDeleting("");
+  };
+
+  const createAdmin = async (school) => {
+    const email = window.prompt("Enter admin email for " + school.name + ":");
+    if (!email) return;
+    const password = window.prompt("Enter password (min 6 characters):");
+    if (!password || password.length < 6) { alert("Password must be at least 6 characters."); return; }
+    setCreatingAdmin(school.id);
+    try {
+      await createUserWithEmailAndPassword(schoolAuth, email, password);
+      setAdminMsg("Admin account created: " + email);
+      setTimeout(() => setAdminMsg(""), 4000);
+    } catch(e) {
+      if (e.code === "auth/email-already-in-use") {
+        setAdminMsg("Account already exists for: " + email);
+      } else {
+        setAdminMsg("Error: " + e.message);
+      }
+      setTimeout(() => setAdminMsg(""), 4000);
+    }
+    setCreatingAdmin("");
   };
 
   const copyLink = (code) => {
