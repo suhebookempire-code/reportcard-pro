@@ -143,32 +143,16 @@ export default function MasterAdmin() {
                 </div>
               ))}
             </div>
-            {schools.length === 0 ? (
-              <div style={{textAlign:"center",padding:"40px",color:"#475569",background:"rgba(255,255,255,0.02)",borderRadius:"12px"}}>No schools registered yet.</div>
-            ) : schools.map(school=>(
               <div key={school.id} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"10px",padding:"14px 16px",marginBottom:"8px"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px",marginBottom:"8px"}}>
-                  <div>
-                    <div style={{fontSize:"15px",color:"#fff",fontWeight:"bold"}}>{school.name}</div>
-                    <div style={{fontSize:"12px",color:"#64748b"}}>{school.location}</div>
-                    {school.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Tel: {school.phone}</div>}
-                    <div style={{fontSize:"12px",color:"#eab308",marginTop:"2px"}}>Code: <strong>{school.code}</strong></div>
-                  </div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
-                    <span style={{fontSize:"11px",padding:"3px 10px",borderRadius:"20px",background:school.active?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)",color:school.active?"#10b981":"#ef4444",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(239,68,68,0.3)")}}>
-                      {school.active?"Active":"Inactive"}
-                    </span>
-                    <button onClick={()=>toggleSchool(school.id,school.active)} style={{padding:"5px 10px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"6px",color:"#94a3b8",fontSize:"11px",cursor:"pointer"}}>
-                      {school.active?"Deactivate":"Activate"}
-                    </button>
-                    <button onClick={()=>copyLink(school.code)} style={{padding:"5px 10px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer"}}>
-                      {copied===school.code?"Copied!":"Copy Link"}
-                    </button>
-                    <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"5px 10px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{creatingAdmin===school.id?"Creating...":"+ Create Admin"}</button>
-                    <button onClick={()=>deleteSchool(school.id,school.name)} disabled={deleting===school.id} style={{padding:"5px 10px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>
-                      {deleting===school.id?"...":"Delete"}
-                    </button>
-                  </div>
+                <div style={{fontSize:"15px",color:"#fff",fontWeight:"bold",marginBottom:"2px"}}>{school.name}</div>
+                <div style={{fontSize:"12px",color:"#64748b"}}>{school.location}</div>
+                {school.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Tel: {school.phone}</div>}
+                <div style={{fontSize:"12px",color:"#eab308",marginTop:"2px",marginBottom:"10px"}}>Code: <strong>{school.code}</strong></div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                  <button onClick={()=>toggleSchool(school.id,school.active)} style={{padding:"6px 12px",background:school.active?"rgba(16,185,129,0.1)":"rgba(234,179,8,0.1)",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(234,179,8,0.3)"),borderRadius:"6px",color:school.active?"#10b981":"#eab308",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{school.active?"Deactivate":"Activate"}</button>
+                  <button onClick={()=>copyLink(school.code)} style={{padding:"6px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{copied===school.code?"Copied!":"Copy Link"}</button>
+                  <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"6px 12px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{creatingAdmin===school.id?"Creating...":"+ Create Admin"}</button>
+                  <button onClick={()=>deleteSchool(school.id,school.name)} disabled={deleting===school.id} style={{padding:"6px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>{deleting===school.id?"...":"Delete"}</button>
                 </div>
               </div>
             ))}
