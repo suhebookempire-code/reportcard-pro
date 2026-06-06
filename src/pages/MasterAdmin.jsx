@@ -13,7 +13,7 @@ export default function MasterAdmin() {
   const [error, setError] = useState("");
   const [schools, setSchools] = useState([]);
   const [tab, setTab] = useState("schools");
-  const [newSchool, setNewSchool] = useState({ name:"", location:"", adminEmail:"", phone:"", code:"" });
+  const [newSchool, setNewSchool] = useState({ name:"", location:"", adminEmail:"", phone:"", code:"", adminPassword:"" });
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState("");
   const [msg, setMsg] = useState("");
@@ -34,8 +34,9 @@ export default function MasterAdmin() {
   };
 
   const addSchool = async () => {
-    if (!newSchool.name || !newSchool.code) { setMsg("Name and code required."); return; }
+    if (!newSchool.name || !newSchool.code || !newSchool.adminEmail || !newSchool.adminPassword) { setMsg("Name, code, admin email and password required."); return; }
     setLoading(true);
+    try { await createUserWithEmailAndPassword(schoolAuth, newSchool.adminEmail, newSchool.adminPassword); } catch(e) { if (e.code !== "auth/email-already-in-use") { setMsg("Error creating admin: " + e.message); setLoading(false); return; } }
     await addDoc(collection(db, "schools"), { ...newSchool, active: true, createdAt: serverTimestamp() });
     setMsg("School added successfully!");
     setNewSchool({ name:"", location:"", email:"", phone:"", code:"" });
