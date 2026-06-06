@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/config";
-import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, where } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { GENERAL_SUBJECTS, SPECIALTIES } from "../utils/grading";
 
 const BASE_URL = "https://reportcard-pro-suhebookempires-projects.vercel.app";
@@ -11,6 +12,8 @@ function generateToken() {
 }
 
 export default function Teachers() {
+  const { user, school } = useAuth();
+  const schoolId = school?.id || user?.uid;
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -22,7 +25,8 @@ export default function Teachers() {
   const allSubjects = [...GENERAL_SUBJECTS, ...Object.values(SPECIALTIES).flat().filter((v,i,a)=>a.indexOf(v)===i)].sort();
 
   const fetchTeachers = async () => {
-    const snap = await getDocs(collection(db, "teachers"));
+    const q = query(collection(db, "teachers"), where("schoolId", "==", schoolId));
+    const snap = await getDocs(q);
     setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     setLoading(false);
   };
@@ -33,7 +37,7 @@ export default function Teachers() {
     if (!form.name || !form.subject) return;
     setSaving(true);
     const token = generateToken();
-    await addDoc(collection(db, "teachers"), { ...form, token, createdAt: serverTimestamp() });
+    await addDoc(collection(db, "teachers"), { ...form, token, schoolId, schoolName: school?.name || "", createdAt: serverTimestamp() });
     setForm({ name:"", subject:"", phone:"", email:"" });
     setShowAdd(false);
     await fetchTeachers();
