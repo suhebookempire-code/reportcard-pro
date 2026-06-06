@@ -154,7 +154,7 @@ export default function MasterAdmin() {
                     {school.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Tel: {school.phone}</div>}
                     <div style={{fontSize:"12px",color:"#eab308",marginTop:"2px"}}>Code: <strong>{school.code}</strong></div>
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginTop:"8px"}}>
                     <span style={{fontSize:"11px",padding:"3px 10px",borderRadius:"20px",background:school.active?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)",color:school.active?"#10b981":"#ef4444",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(239,68,68,0.3)")}}>
                       {school.active?"Active":"Inactive"}
                     </span>
