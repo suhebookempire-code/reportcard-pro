@@ -31,6 +31,11 @@ export default function Dashboard() {
 
   useEffect(() => { fetchData(); }, [schoolId]);
 
+  useEffect(() => {
+    const code = localStorage.getItem("schoolCode");
+    if (!code) { logout(); navigate("/login"); }
+  }, []);
+
   const schoolCode = school?.code || "";
   const handleLogout = async () => { await logout(); if (schoolCode) navigate("/school/" + schoolCode); else navigate("/login"); };
 
