@@ -31,7 +31,8 @@ export default function Dashboard() {
 
   useEffect(() => { fetchData(); }, [schoolId]);
 
-  const handleLogout = async () => { await logout(); navigate("/login"); };
+  const schoolCode = school?.code || "";
+  const handleLogout = async () => { await logout(); if (schoolCode) navigate("/school/" + schoolCode); else navigate("/login"); };
 
   const deleteStudent = async (id, name) => {
     if (!window.confirm("Delete " + name + "?")) return;
