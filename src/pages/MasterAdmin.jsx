@@ -163,7 +163,7 @@ export default function MasterAdmin() {
         {tab === "add" && (
           <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"24px",maxWidth:"500px"}}>
             <h3 style={{color:"#eab308",fontSize:"15px",margin:"0 0 20px"}}>Register New School</h3>
-            {[{name:"name",placeholder:"School Name *"},{name:"location",placeholder:"Location / Localisation"},{name:"adminEmail",placeholder:"Admin Login Email *"},{name:"phone",placeholder:"Phone / Telephone"}].map(f=>(
+            {[{name:"name",placeholder:"School Name *"},{name:"location",placeholder:"Location / Localisation"},{name:"phone",placeholder:"Phone / Telephone"},{name:"adminEmail",placeholder:"Admin Email * (for school login)"},{name:"adminPassword",placeholder:"Admin Password * (min 6 chars)"}].map(f=>(
               <input key={f.name} value={newSchool[f.name]} onChange={e=>setNewSchool(s=>({...s,[f.name]:e.target.value}))} placeholder={f.placeholder} style={{width:"100%",padding:"10px 12px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"10px"}} />
             ))}
             <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
