@@ -154,7 +154,7 @@ export default function MasterAdmin() {
                     {school.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Tel: {school.phone}</div>}
                     <div style={{fontSize:"12px",color:"#eab308",marginTop:"2px"}}>Code: <strong>{school.code}</strong></div>
                   </div>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginTop:"8px"}}>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"8px"}}>
                     <span style={{fontSize:"11px",padding:"3px 10px",borderRadius:"20px",background:school.active?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)",color:school.active?"#10b981":"#ef4444",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(239,68,68,0.3)")}}>
                       {school.active?"Active":"Inactive"}
                     </span>
@@ -164,7 +164,7 @@ export default function MasterAdmin() {
                     <button onClick={()=>copyLink(school.code)} style={{padding:"5px 10px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer"}}>
                       {copied===school.code?"Copied!":"Copy Link"}
                     </button>
-                    <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"5px 10px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"6px",color:"#34d399",fontSize:"11px",cursor:"pointer"}}>{creatingAdmin===school.id?"Creating...":"Create Admin"}</button>
+                    <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"5px 10px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{creatingAdmin===school.id?"Creating...":"+ Create Admin"}</button>
                     <button onClick={()=>deleteSchool(school.id,school.name)} disabled={deleting===school.id} style={{padding:"5px 10px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>
                       {deleting===school.id?"...":"Delete"}
                     </button>
