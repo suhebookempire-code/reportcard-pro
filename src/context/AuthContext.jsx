@@ -14,9 +14,12 @@ export const AuthProvider = ({ children }) => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
         setUser(u);
-        const q = query(collection(db, "schools"), where("adminEmail", "==", u.email));
-        const snap = await getDocs(q);
-        if (!snap.empty) setSchool({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        const schoolCode = localStorage.getItem("schoolCode");
+        if (schoolCode) {
+          const q = query(collection(db, "schools"), where("code", "==", schoolCode));
+          const snap = await getDocs(q);
+          if (!snap.empty) setSchool({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        }
       } else {
         setUser(null);
         setSchool(null);
@@ -27,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
-  const logout = () => signOut(auth);
+  const logout = () => { localStorage.removeItem("schoolCode"); return signOut(auth); };
 
   return (
     <AuthContext.Provider value={{ user, school, loading, login, logout }}>

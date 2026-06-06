@@ -34,6 +34,7 @@ export default function SchoolEntry() {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      localStorage.setItem("schoolCode", code);
       navigate("/");
     } catch(e) {
       setError("Invalid email or password.");
@@ -76,6 +77,7 @@ export default function SchoolEntry() {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      localStorage.setItem("schoolCode", code);
       navigate("/");
     } catch(e) {
       setError("Invalid email or password.");
