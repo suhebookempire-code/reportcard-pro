@@ -10,6 +10,7 @@ import TeacherPortal from "./pages/TeacherPortal";
 import Teachers from "./pages/Teachers";
 import Classes from "./pages/Classes";
 import ClassList from "./pages/ClassList";
+import SchoolEntry from "./pages/SchoolEntry";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/master" element={<MasterAdmin />} />
+          <Route path="/school/:code" element={<SchoolEntry />} />
           <Route path="/teacher/:token" element={<TeacherPortal />} />
           <Route path="/class/:token" element={<ClassList />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

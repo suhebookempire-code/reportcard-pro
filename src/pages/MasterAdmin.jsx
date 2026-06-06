@@ -55,7 +55,8 @@ export default function MasterAdmin() {
   };
 
   const copyLink = (code) => {
-    navigator.clipboard.writeText(APP_URL + "?school=" + code);
+    const link = APP_URL + "/school/" + code;
+    navigator.clipboard.writeText(link);
     setCopied(code);
     setTimeout(() => setCopied(""), 2000);
   };
