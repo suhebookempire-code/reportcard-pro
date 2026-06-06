@@ -47,18 +47,21 @@ export default function Dashboard() {
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
       <nav style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
-          <div style={{width:"36px",height:"36px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#0a0f1e",fontSize:"14px"}}>RC</div>
-          <div>
-            <div style={{fontSize:"13px",fontWeight:"bold",color:"#fff"}}>{school?.name || "ReportCard Pro"}</div>
-            <div style={{fontSize:"10px",color:"#64748b"}}>{user?.email}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+            <div style={{width:"36px",height:"36px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#0a0f1e",fontSize:"14px"}}>RC</div>
+            <div>
+              <div style={{fontSize:"13px",fontWeight:"bold",color:"#fff"}}>{school?.name || "ReportCard Pro"}</div>
+            </div>
           </div>
+          <button onClick={handleLogout} style={{padding:"6px 14px",background:"rgba(239,68,68,0.2)",border:"1px solid rgba(239,68,68,0.5)",borderRadius:"8px",color:"#ff6b6b",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>Logout</button>
+        </div>
         </div>
         <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginTop:"8px"}}>
           <Link to="/add-student" style={{padding:"6px 12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",textDecoration:"none"}}>+ Student</Link>
           <Link to="/classes" style={{padding:"6px 12px",background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"8px",color:"#a78bfa",fontSize:"12px",textDecoration:"none"}}>Classes</Link>
           <Link to="/teachers" style={{padding:"6px 12px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none"}}>Teachers</Link>
-          <button onClick={handleLogout} style={{padding:"6px 12px",background:"rgba(239,68,68,0.2)",border:"2px solid rgba(239,68,68,0.6)",borderRadius:"8px",color:"#ff6b6b",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>Logout</button>
+
         </div>
       </nav>
 
