@@ -3,7 +3,7 @@ import { db } from "../firebase/config";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-const MASTER_PASSWORD = "Fru2040"; // v5
+const MASTER_PASSWORD = "Gerald2040"; // v5
 const schoolAuth = getAuth();
 const APP_URL = "https://reportcard-pro-suhebookempires-projects.vercel.app";
 
