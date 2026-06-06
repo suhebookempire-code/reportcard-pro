@@ -164,6 +164,7 @@ export default function MasterAdmin() {
                     <button onClick={()=>copyLink(school.code)} style={{padding:"5px 10px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer"}}>
                       {copied===school.code?"Copied!":"Copy Link"}
                     </button>
+                    <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"5px 10px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"6px",color:"#34d399",fontSize:"11px",cursor:"pointer"}}>{creatingAdmin===school.id?"Creating...":"Create Admin"}</button>
                     <button onClick={()=>deleteSchool(school.id,school.name)} disabled={deleting===school.id} style={{padding:"5px 10px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>
                       {deleting===school.id?"...":"Delete"}
                     </button>
