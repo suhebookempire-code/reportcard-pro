@@ -10,6 +10,33 @@ export default function ReportCard() {
   const [allScores, setAllScores] = useState({});
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState("2026/2027");
+  const [logo, setLogo] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target.result;
+      setLogo(base64);
+      const { doc, setDoc } = await import("firebase/firestore");
+      await setDoc(doc(db, "schoolLogos", student.schoolName || "default"), { logo: base64 });
+      setUploadingLogo(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  useEffect(() => {
+    const loadLogo = async () => {
+      if (!student) return;
+      const { doc, getDoc } = await import("firebase/firestore");
+      const snap = await getDoc(doc(db, "schoolLogos", student.schoolName || "default"));
+      if (snap.exists()) setLogo(snap.data().logo);
+    };
+    loadLogo();
+  }, [student]);
 
   useEffect(() => {
     const load = async () => {
@@ -65,6 +92,10 @@ export default function ReportCard() {
       </div>
       <div style={{maxWidth:"1100px",margin:"0 auto",padding:"12px"}}>
         <div style={{background:"linear-gradient(135deg,#0d1b3e,#1a3a6e)",padding:"14px",textAlign:"center",borderRadius:"10px 10px 0 0",borderBottom:"3px solid #eab308"}}>
+          <div style={{marginBottom:"10px",display:"flex",alignItems:"center",justifyContent:"center",gap:"16px"}}>
+            {logo ? <img src={logo} alt="School Logo" style={{width:"70px",height:"70px",objectFit:"contain",borderRadius:"8px",background:"rgba(255,255,255,0.1)",padding:"4px"}} /> : <label style={{width:"70px",height:"70px",border:"2px dashed rgba(234,179,8,0.4)",borderRadius:"8px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",background:"rgba(234,179,8,0.05)"}}>🏫<span style={{fontSize:"8px",color:"#eab308",marginTop:"4px"}}>Upload Logo</span><input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} /></label>}
+            {logo && <label style={{cursor:"pointer"}}><span style={{fontSize:"10px",color:"#eab308",padding:"4px 8px",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px"}}>✏️ Change</span><input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} /></label>}
+          </div>
           <h1 style={{color:"#eab308",fontSize:"20px",margin:"0 0 2px",fontWeight:"bold",letterSpacing:"2px"}}>{(student.schoolName || "SCHOOL NAME").toUpperCase()}</h1>
           <p style={{color:"#94a3b8",fontSize:"11px",margin:"0 0 1px"}}>{student.schoolName || ""} — North West Region, Cameroon</p>
           <p style={{color:"#64748b",fontSize:"10px",margin:"0 0 8px",fontStyle:"italic"}}>Peace, Unity and Progress / Paix, Unite et Progres</p>
