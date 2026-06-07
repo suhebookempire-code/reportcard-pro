@@ -151,7 +151,7 @@ export default function ReportCard() {
             <div style={{flex:1,textAlign:"center"}}>
               <div contentEditable suppressContentEditableWarning style={{fontSize:"16px",fontWeight:"bold",color:"#1e3a5f",textTransform:"uppercase"}}>{(student.schoolName||"SCHOOL NAME").toUpperCase()}</div>
               <div contentEditable suppressContentEditableWarning style={{fontSize:"10px",color:"#475569",margin:"2px 0"}}>GENERAL, COMMERCIAL & TECHNICAL EDUCATION</div>
-              <div style={{fontSize:"10px",color:"#475569"}}>Tel: {student.schoolPhone||""} &nbsp;|&nbsp; North West Region, Cameroon</div>
+              <div contentEditable suppressContentEditableWarning style={{fontSize:"10px",color:"#475569"}}>Tel: {student.schoolPhone||""} &nbsp;|&nbsp; North West Region, Cameroon</div>
               <div contentEditable suppressContentEditableWarning style={{fontSize:"10px",color:"#1e3a5f",fontWeight:"bold",marginTop:"2px"}}>Motto: EMPOWERED TO SERVE</div>
             </div>
           </div>
