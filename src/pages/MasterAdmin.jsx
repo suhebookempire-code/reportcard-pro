@@ -114,12 +114,9 @@ export default function MasterAdmin() {
             <button onClick={()=>toggleSchool(selectedSchool.id,selectedSchool.active)} style={{padding:"10px 16px",background:selectedSchool.active?"rgba(239,68,68,0.1)":"rgba(16,185,129,0.1)",border:"1px solid "+(selectedSchool.active?"rgba(239,68,68,0.3)":"rgba(16,185,129,0.3)"),borderRadius:"8px",color:selectedSchool.active?"#fca5a5":"#34d399",fontSize:"12px",cursor:"pointer"}}>{selectedSchool.active?"Deactivate":"Activate"}</button>
           </div>
         </div>
-        <div style={{background:"rgba(59,130,246,0.05)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"12px",padding:"20px"}}>
-          <h3 style={{color:"#60a5fa",fontSize:"14px",margin:"0 0 16px"}}>+ Create Admin Account</h3>
-          <input value={adminEmail} onChange={e=>setAdminEmail(e.target.value)} placeholder="Admin Email *" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"10px"}} />
-          <input type="password" value={adminPassword} onChange={e=>setAdminPassword(e.target.value)} placeholder="Password * (min 6 chars)" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"16px"}} />
-          <button onClick={createAdmin} disabled={creatingAdmin} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",border:"none",borderRadius:"8px",color:"#fff",fontWeight:"bold",fontSize:"14px",cursor:"pointer"}}>{creatingAdmin?"Creating...":"Create Admin Account"}</button>
-          <p style={{fontSize:"11px",color:"#475569",margin:"12px 0 0",textAlign:"center"}}>Share this link + email + password with the school admin</p>
+        <div style={{background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:"12px",padding:"16px",textAlign:"center"}}>
+          <p style={{color:"#34d399",fontSize:"13px",margin:"0 0 8px"}}>✅ Admin account was created when school was registered.</p>
+          <p style={{color:"#475569",fontSize:"11px",margin:0}}>Share the link above with the school administrator.</p>
         </div>
       </div>
     </div>
