@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [deleting, setDeleting] = useState("");
   const [tab, setTab] = useState("students");
 
-  const schoolId = school?.id || user?.uid;
+  const schoolId = school?.id || localStorage.getItem("schoolId") || user?.uid;
 
   const fetchData = async () => {
     try {
