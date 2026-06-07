@@ -65,8 +65,8 @@ export default function ReportCard() {
       </div>
       <div style={{maxWidth:"1100px",margin:"0 auto",padding:"12px"}}>
         <div style={{background:"linear-gradient(135deg,#0d1b3e,#1a3a6e)",padding:"14px",textAlign:"center",borderRadius:"10px 10px 0 0",borderBottom:"3px solid #eab308"}}>
-          <h1 style={{color:"#eab308",fontSize:"20px",margin:"0 0 2px",fontWeight:"bold",letterSpacing:"2px"}}>SUNRISE COLLEGE</h1>
-          <p style={{color:"#94a3b8",fontSize:"11px",margin:"0 0 1px"}}>Mile 8 Mankon, Bamenda, North West Region, Cameroon</p>
+          <h1 style={{color:"#eab308",fontSize:"20px",margin:"0 0 2px",fontWeight:"bold",letterSpacing:"2px"}}>{(student.schoolName || "SCHOOL NAME").toUpperCase()}</h1>
+          <p style={{color:"#94a3b8",fontSize:"11px",margin:"0 0 1px"}}>{student.schoolName || ""} — North West Region, Cameroon</p>
           <p style={{color:"#64748b",fontSize:"10px",margin:"0 0 8px",fontStyle:"italic"}}>Peace, Unity and Progress / Paix, Unite et Progres</p>
           <h2 style={{color:"#fff",fontSize:"14px",margin:"0",fontWeight:"bold"}}>STUDENT REPORT CARD / BULLETIN DE NOTES</h2>
           <p style={{color:"#eab308",fontSize:"11px",margin:"4px 0 0"}}>Academic Year / Annee Scolaire: {year}</p>
