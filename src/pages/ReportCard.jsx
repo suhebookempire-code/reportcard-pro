@@ -1,48 +1,33 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useParams, Link } from "react-router-dom";
-import { GENERAL_SUBJECTS, SPECIALTIES, SEQUENCES, TERMS, getGrade, getOverallRemark } from "../utils/grading";
+import { SPECIALTIES, GENERAL_SUBJECTS, SEQUENCES, TERMS, getGrade, getOverallRemark } from "../utils/grading";
 
 export default function ReportCard() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [allScores, setAllScores] = useState({});
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState("2026/2027");
+  const [year, setYear] = useState("2025/2026");
+  const [term, setTerm] = useState("Third Term / Troisieme Trimestre");
   const [logo, setLogo] = useState(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingLogo(true);
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const base64 = ev.target.result;
-      setLogo(base64);
-      const { doc, setDoc } = await import("firebase/firestore");
-      await setDoc(doc(db, "schoolLogos", student.schoolName || "default"), { logo: base64 });
-      setUploadingLogo(false);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  useEffect(() => {
-    const loadLogo = async () => {
-      if (!student) return;
-      const { doc, getDoc } = await import("firebase/firestore");
-      const snap = await getDoc(doc(db, "schoolLogos", student.schoolName || "default"));
-      if (snap.exists()) setLogo(snap.data().logo);
-    };
-    loadLogo();
-  }, [student]);
+  const [classSize, setClassSize] = useState("");
+  const [position, setPosition] = useState("");
+  const [classAvg, setClassAvg] = useState("");
+  const [decision, setDecision] = useState("PROMOTED");
+  const [classMaster, setClassMaster] = useState("");
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       const snap = await getDoc(doc(db, "students", id));
-      if (snap.exists()) setStudent({ id: snap.id, ...snap.data() });
+      if (snap.exists()) {
+        const s = { id: snap.id, ...snap.data() };
+        setStudent(s);
+        const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName || "default"));
+        if (logoSnap.exists()) setLogo(logoSnap.data().logo);
+      }
       const sd = {};
       for (const seq of SEQUENCES) {
         const key = year.replace(/[/]/g, "-") + "_" + seq.replace(/ /g, "_");
@@ -55,13 +40,26 @@ export default function ReportCard() {
     load();
   }, [id, year]);
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target.result;
+      setLogo(base64);
+      await setDoc(doc(db, "schoolLogos", student.schoolName || "default"), { logo: base64 });
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (loading) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#94a3b8"}}>Loading Report Card...</div>;
   if (!student) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#ef4444"}}>Student not found.</div>;
 
+  const termSeqs = TERMS[term] || [];
   const subjects = [...GENERAL_SUBJECTS, ...(SPECIALTIES[student.specialty] || [])];
   const getScore = (subj, seq) => allScores[seq]?.[subj] ?? "";
-  const getTermAvg = (subj, term) => {
-    const vals = TERMS[term].map(s => getScore(subj, s)).filter(v => v !== "");
+  const getTermAvg = (subj) => {
+    const vals = termSeqs.map(s => getScore(subj, s)).filter(v => v !== "");
     if (!vals.length) return "";
     return (vals.reduce((a, b) => a + parseFloat(b), 0) / vals.length).toFixed(1);
   };
@@ -70,110 +68,186 @@ export default function ReportCard() {
     if (!vals.length) return "";
     return (vals.reduce((a, b) => a + parseFloat(b), 0) / vals.length).toFixed(1);
   };
-  const overall = (() => {
-    const vals = subjects.map(s => getAnnual(s)).filter(v => v !== "");
-    if (!vals.length) return null;
+  const studentAvg = (() => {
+    const vals = subjects.map(s => getTermAvg(s)).filter(v => v !== "");
+    if (!vals.length) return "";
     return (vals.reduce((a, b) => a + parseFloat(b), 0) / vals.length).toFixed(2);
   })();
-  const remark = getOverallRemark(overall ? parseFloat(overall) : null);
-  const th = { padding:"5px 4px", fontSize:"9px", color:"#94a3b8", fontWeight:"600", borderBottom:"1px solid rgba(255,255,255,0.08)", whiteSpace:"nowrap", background:"rgba(234,179,8,0.08)", textAlign:"center" };
-  const td = { padding:"4px", fontSize:"9px", borderBottom:"1px solid rgba(255,255,255,0.04)", color:"#cbd5e1", textAlign:"center" };
+
+  const cell = { padding:"4px 3px", fontSize:"9px", border:"1px solid #334155", textAlign:"center", color:"#e2e8f0" };
+  const hdr = { ...cell, background:"#1e3a5f", color:"#eab308", fontWeight:"bold", fontSize:"8px" };
+  const subjectCell = { ...cell, textAlign:"left", paddingLeft:"6px", color:"#e2e8f0" };
+
+  const SubjectTable = ({ title, titleFr, subjs }) => (
+    <div style={{marginBottom:"8px"}}>
+      <div style={{background:"#1e3a5f",padding:"4px 8px",fontSize:"10px",fontWeight:"bold",color:"#eab308",borderRadius:"4px 4px 0 0",border:"1px solid #334155"}}>
+        {title} / {titleFr}
+      </div>
+      <table style={{width:"100%",borderCollapse:"collapse"}}>
+        <thead>
+          <tr>
+            <th style={{...hdr,width:"30px"}}>Code</th>
+            <th style={{...hdr,textAlign:"left",paddingLeft:"6px"}}>Subject / Matiere</th>
+            {termSeqs.map(s => <th key={s} style={{...hdr,width:"35px"}}>{s.replace("Sequence ","Seq ")}</th>)}
+            <th style={{...hdr,width:"35px"}}>AVG/MOY</th>
+            <th style={{...hdr,width:"30px"}}>COEF</th>
+            <th style={{...hdr,width:"40px"}}>Total</th>
+            <th style={{...hdr,width:"55px"}}>Remark/Obs</th>
+            <th style={{...hdr,width:"60px"}}>Teacher/Prof</th>
+          </tr>
+        </thead>
+        <tbody>
+          {subjs.map((subj, i) => {
+            const avg = getTermAvg(subj);
+            const grade = getGrade(avg ? parseFloat(avg) : null);
+            const coef = 2;
+            const total = avg ? (parseFloat(avg) * coef).toFixed(1) : "";
+            return (
+              <tr key={i} style={{background: i%2===0?"rgba(255,255,255,0.02)":"rgba(255,255,255,0.04)"}}>
+                <td style={cell}>{i+1}</td>
+                <td style={subjectCell}>{subj.split("/")[0].trim()}</td>
+                {termSeqs.map(s => <td key={s} style={{...cell,color:getScore(subj,s)!==""?(parseFloat(getScore(subj,s))>=10?"#34d399":"#fca5a5"):"#94a3b8"}}>{getScore(subj,s)||"-"}</td>)}
+                <td style={{...cell,fontWeight:"bold",color:avg?(parseFloat(avg)>=10?"#34d399":"#fca5a5"):"#94a3b8"}}>{avg||"-"}</td>
+                <td style={cell}>{coef}</td>
+                <td style={cell}>{total||"-"}</td>
+                <td style={{...cell,color:grade.color,fontSize:"8px"}}>{avg?grade.remark:"-"}</td>
+                <td style={cell}></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
-      <div style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"}}>
-        <Link to="/" style={{color:"#94a3b8",fontSize:"13px",textDecoration:"none"}}>Back / Retour</Link>
-        <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
-          <select value={year} onChange={e=>setYear(e.target.value)} style={{padding:"6px 10px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"12px"}}>
+      <style>{`@media print { .no-print{display:none!important} body{background:#fff} }`}</style>
+      <div className="no-print" style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"}}>
+        <Link to="/" style={{color:"#94a3b8",fontSize:"13px",textDecoration:"none"}}>← Back / Retour</Link>
+        <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap"}}>
+          <select value={term} onChange={e=>setTerm(e.target.value)} style={{padding:"6px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"11px"}}>
+            {Object.keys(TERMS).map(t=><option key={t}>{t}</option>)}
+          </select>
+          <select value={year} onChange={e=>setYear(e.target.value)} style={{padding:"6px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"11px"}}>
             {["2024/2025","2025/2026","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
           </select>
-          <button onClick={()=>window.print()} style={{padding:"6px 14px",background:"#eab308",border:"none",borderRadius:"6px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>Print / Imprimer</button>
+          <button onClick={()=>window.print()} style={{padding:"6px 14px",background:"#eab308",border:"none",borderRadius:"6px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>🖨️ Print</button>
         </div>
       </div>
-      <div style={{maxWidth:"1100px",margin:"0 auto",padding:"12px"}}>
-        <div style={{background:"linear-gradient(135deg,#0d1b3e,#1a3a6e)",padding:"14px",textAlign:"center",borderRadius:"10px 10px 0 0",borderBottom:"3px solid #eab308"}}>
-          <div style={{marginBottom:"10px",display:"flex",alignItems:"center",justifyContent:"center",gap:"16px"}}>
-            {logo ? <img src={logo} alt="School Logo" style={{width:"70px",height:"70px",objectFit:"contain",borderRadius:"8px",background:"rgba(255,255,255,0.1)",padding:"4px"}} /> : <label style={{width:"70px",height:"70px",border:"2px dashed rgba(234,179,8,0.4)",borderRadius:"8px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",background:"rgba(234,179,8,0.05)"}}>🏫<span style={{fontSize:"8px",color:"#eab308",marginTop:"4px"}}>Upload Logo</span><input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} /></label>}
-            {logo && <label style={{cursor:"pointer"}}><span style={{fontSize:"10px",color:"#eab308",padding:"4px 8px",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px"}}>✏️ Change</span><input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} /></label>}
-          </div>
-          <h1 style={{color:"#eab308",fontSize:"20px",margin:"0 0 2px",fontWeight:"bold",letterSpacing:"2px"}}>{(student.schoolName || "SCHOOL NAME").toUpperCase()}</h1>
-          <p style={{color:"#94a3b8",fontSize:"11px",margin:"0 0 1px"}}>{student.schoolName || ""} — North West Region, Cameroon</p>
-          <p style={{color:"#64748b",fontSize:"10px",margin:"0 0 8px",fontStyle:"italic"}}>Peace, Unity and Progress / Paix, Unite et Progres</p>
-          <h2 style={{color:"#fff",fontSize:"14px",margin:"0",fontWeight:"bold"}}>STUDENT REPORT CARD / BULLETIN DE NOTES</h2>
-          <p style={{color:"#eab308",fontSize:"11px",margin:"4px 0 0"}}>Academic Year / Annee Scolaire: {year}</p>
-        </div>
-        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderTop:"none",padding:"10px 14px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px",marginBottom:"10px"}}>
-          <div>
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0 0 3px"}}>Name / Nom: <strong style={{color:"#fff"}}>{student.name}</strong></p>
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0 0 3px"}}>Class / Classe: <strong style={{color:"#fff"}}>{student.level} - {student.classSection}</strong></p>
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0 0 3px"}}>Gender / Sexe: <strong style={{color:"#fff"}}>{student.gender}</strong></p>
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0"}}>Section: <strong style={{color:"#fff"}}>{student.section || "Grammar"}</strong></p>
-          </div>
-          <div>
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0 0 3px"}}>Admission No. / N Matricule: <strong style={{color:"#eab308"}}>{student.admissionNumber || "-"}</strong></p>
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0 0 3px"}}>DOB / Date Naissance: <strong style={{color:"#fff"}}>{student.dateOfBirth || "-"}</strong></p>
-            {student.specialty && <p style={{fontSize:"10px",color:"#94a3b8",margin:"0 0 3px"}}>Specialty / Specialite: <strong style={{color:"#fff"}}>{student.specialty}</strong></p>}
-            <p style={{fontSize:"11px",color:"#94a3b8",margin:"0"}}>Overall / Moyenne: <strong style={{color:"#eab308",fontSize:"16px"}}>{overall || "-"}/20</strong> <span style={{color:overall?getGrade(overall).color:"#374151",fontWeight:"bold"}}>{overall ? getGrade(overall).grade : ""}</span></p>
-          </div>
-        </div>
-        <div style={{overflowX:"auto",marginBottom:"10px"}}>
-          <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead>
-              <tr>
-                <th style={{...th,textAlign:"left",minWidth:"180px"}}>Subject / Matiere</th>
-                {SEQUENCES.map(s=><th key={s} style={th}>{s.replace("Sequence ","S")}</th>)}
-                <th style={{...th,background:"rgba(59,130,246,0.12)"}}>T1</th>
-                <th style={{...th,background:"rgba(59,130,246,0.12)"}}>T2</th>
-                <th style={{...th,background:"rgba(59,130,246,0.12)"}}>T3</th>
-                <th style={{...th,background:"rgba(16,185,129,0.12)"}}>Annual/Annuel</th>
-                <th style={{...th,background:"rgba(16,185,129,0.12)"}}>Grade</th>
-                <th style={{...th,background:"rgba(16,185,129,0.12)",minWidth:"110px"}}>Remark/Appreciation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subjects.map((subj, i) => {
-                const annual = getAnnual(subj);
-                const g = getGrade(annual);
-                return (
-                  <tr key={subj} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent"}}>
-                    <td style={{...td,textAlign:"left",color:"#e2e8f0",fontWeight:"500"}}>{subj}</td>
-                    {SEQUENCES.map(s => {
-                      const sc = getScore(subj, s);
-                      return <td key={s} style={{...td,color:sc?getGrade(sc).color:"#374151"}}>{sc || "-"}</td>;
-                    })}
-                    {Object.keys(TERMS).map(t => {
-                      const avg = getTermAvg(subj, t);
-                      return <td key={t} style={{...td,color:avg?getGrade(avg).color:"#374151",background:"rgba(59,130,246,0.03)"}}>{avg || "-"}</td>;
-                    })}
-                    <td style={{...td,fontWeight:"bold",color:g.color,background:"rgba(16,185,129,0.03)"}}>{annual || "-"}</td>
-                    <td style={{...td,fontWeight:"bold",color:g.color,background:"rgba(16,185,129,0.03)"}}>{annual ? g.grade : "-"}</td>
-                    <td style={{...td,color:g.color,background:"rgba(16,185,129,0.03)",fontSize:"8px"}}>{annual ? g.remark + " / " + g.remarkFr : "-"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr style={{background:"rgba(234,179,8,0.08)",fontWeight:"bold"}}>
-                <td style={{...td,textAlign:"left",color:"#eab308",fontWeight:"bold"}}>OVERALL / MOYENNE GENERALE</td>
-                {SEQUENCES.map(s=><td key={s} style={td}></td>)}
-                <td style={td}></td><td style={td}></td><td style={td}></td>
-                <td style={{...td,color:"#eab308",fontSize:"14px",fontWeight:"bold"}}>{overall || "-"}</td>
-                <td style={{...td,color:overall?getGrade(overall).color:"#374151",fontWeight:"bold"}}>{overall ? getGrade(overall).grade : "-"}</td>
-                <td style={{...td,color:"#eab308",fontSize:"8px"}}>{overall ? remark.en + " / " + remark.fr : "-"}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"10px",marginBottom:"10px"}}>
-          {[{en:"Principal",fr:"Directeur"},{en:"Class Teacher",fr:"Prof. Principal"},{en:"Parent/Guardian",fr:"Parent/Tuteur"}].map((l,i)=>(
-            <div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"8px",padding:"10px",textAlign:"center"}}>
-              <p style={{fontSize:"10px",color:"#64748b",margin:"0 0 2px"}}>{l.en} Signature</p>
-              <p style={{fontSize:"9px",color:"#475569",margin:"0 0 10px"}}>Signature {l.fr}</p>
-              <div style={{height:"30px",borderBottom:"1px solid rgba(255,255,255,0.1)"}}></div>
+
+      <div style={{maxWidth:"900px",margin:"0 auto",padding:"12px",background:"#fff",color:"#000",minHeight:"100vh"}}>
+        {/* HEADER */}
+        <div style={{border:"2px solid #1e3a5f",borderRadius:"8px",overflow:"hidden",marginBottom:"8px"}}>
+          <div style={{display:"flex",alignItems:"center",padding:"10px",background:"#fff",borderBottom:"2px solid #1e3a5f"}}>
+            <div style={{marginRight:"12px"}}>
+              {logo ? <img src={logo} alt="Logo" style={{width:"80px",height:"80px",objectFit:"contain"}} /> :
+              <label className="no-print" style={{width:"80px",height:"80px",border:"2px dashed #1e3a5f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",borderRadius:"8px",background:"#f8fafc"}}>
+                <span style={{fontSize:"24px"}}>🏫</span>
+                <span style={{fontSize:"7px",color:"#1e3a5f",textAlign:"center"}}>Upload Logo</span>
+                <input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} />
+              </label>}
             </div>
-          ))}
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontSize:"16px",fontWeight:"bold",color:"#1e3a5f",textTransform:"uppercase"}}>{(student.schoolName||"SCHOOL NAME").toUpperCase()}</div>
+              <div style={{fontSize:"10px",color:"#475569",margin:"2px 0"}}>GENERAL, COMMERCIAL & TECHNICAL EDUCATION</div>
+              <div style={{fontSize:"10px",color:"#475569"}}>Tel: {student.schoolPhone||""} &nbsp;|&nbsp; North West Region, Cameroon</div>
+              <div style={{fontSize:"10px",color:"#1e3a5f",fontWeight:"bold",marginTop:"2px"}}>Motto: EMPOWERED TO SERVE</div>
+            </div>
+          </div>
+
+          {/* STUDENT INFO */}
+          <div style={{background:"#f8fafc",padding:"8px 12px",borderBottom:"1px solid #e2e8f0"}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px",fontSize:"11px",color:"#1e293b"}}>
+              <div>Reg. No / N° Matricule: <strong>{student.admissionNumber||"_______"}</strong></div>
+              <div>Class Code / Code Classe: <strong>{student.level} - {student.classSection}</strong></div>
+              <div>Name / Nom: <strong style={{color:"#1e3a5f"}}>{student.name}</strong></div>
+              <div>Section: <strong>{student.section||"Grammar"}</strong></div>
+              <div>D.O.B / Date Naiss.: <strong>{student.dateOfBirth||"_______"}</strong></div>
+              <div>Option / Specialite: <strong>{student.specialty||student.section||"_______"}</strong></div>
+            </div>
+          </div>
+
+          <div style={{background:"#1e3a5f",padding:"6px",textAlign:"center"}}>
+            <div style={{color:"#eab308",fontWeight:"bold",fontSize:"13px",letterSpacing:"2px"}}>
+              {term.split("/")[0].trim().toUpperCase()} REPORT CARD / BULLETIN DE NOTES
+            </div>
+            <div style={{color:"#fff",fontSize:"10px"}}>Academic Year / Annee Scolaire: {year}</div>
+          </div>
         </div>
-        <p style={{textAlign:"center",fontSize:"9px",color:"#334155",margin:"8px 0 0"}}>Powered by ReportCard Pro — Suh Ebook Empire</p>
+
+        {/* SUBJECT TABLES */}
+        {student.section === "Technical" ? (
+          <>
+            <SubjectTable title="Professional Subjects" titleFr="Matieres Professionnelles" subjs={SPECIALTIES[student.specialty]||[]} />
+            <SubjectTable title="General Subjects" titleFr="Matieres Generales" subjs={GENERAL_SUBJECTS.slice(0,6)} />
+            <SubjectTable title="Other Subjects" titleFr="Autres Matieres" subjs={["Manual Labour / Travaux Manuels","Sports / Sport"]} />
+          </>
+        ) : (
+          <>
+            <SubjectTable title="Core Subjects" titleFr="Matieres Principales" subjs={GENERAL_SUBJECTS.slice(0,8)} />
+            <SubjectTable title="Optional Subjects" titleFr="Matieres Optionnelles" subjs={SPECIALTIES[student.specialty]||GENERAL_SUBJECTS.slice(8)} />
+            <SubjectTable title="Other Subjects" titleFr="Autres Matieres" subjs={["Manual Labour / Travaux Manuels","Sports / Sport"]} />
+          </>
+        )}
+
+        {/* BOTTOM SUMMARY */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginTop:"8px"}}>
+          <div style={{border:"1px solid #334155",borderRadius:"6px",overflow:"hidden"}}>
+            <div style={{background:"#1e3a5f",padding:"4px 8px",fontSize:"10px",fontWeight:"bold",color:"#eab308"}}>Results / Resultats</div>
+            <div style={{padding:"8px",fontSize:"10px",color:"#1e293b",background:"#fff"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}>
+                <span>Student Avg / Moy Eleve:</span>
+                <strong style={{color:studentAvg&&parseFloat(studentAvg)>=10?"#059669":"#dc2626",fontSize:"13px"}}>{studentAvg||"-"}/20</strong>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}>
+                <span>Position / Rang:</span>
+                <input value={position} onChange={e=>setPosition(e.target.value)} className="no-print" placeholder="e.g. 3" style={{width:"60px",border:"1px solid #e2e8f0",borderRadius:"4px",padding:"2px 4px",fontSize:"10px",textAlign:"center"}} />
+                <span className="print-only">{position}</span>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}>
+                <span>Out of / Sur:</span>
+                <input value={classSize} onChange={e=>setClassSize(e.target.value)} className="no-print" placeholder="e.g. 45" style={{width:"60px",border:"1px solid #e2e8f0",borderRadius:"4px",padding:"2px 4px",fontSize:"10px",textAlign:"center"}} />
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between"}}>
+                <span>Class Avg / Moy Classe:</span>
+                <input value={classAvg} onChange={e=>setClassAvg(e.target.value)} className="no-print" placeholder="e.g. 11.5" style={{width:"60px",border:"1px solid #e2e8f0",borderRadius:"4px",padding:"2px 4px",fontSize:"10px",textAlign:"center"}} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{border:"1px solid #334155",borderRadius:"6px",overflow:"hidden"}}>
+            <div style={{background:"#1e3a5f",padding:"4px 8px",fontSize:"10px",fontWeight:"bold",color:"#eab308"}}>Class Council Decision / Decision du Conseil</div>
+            <div style={{padding:"8px",background:"#fff"}}>
+              <select value={decision} onChange={e=>setDecision(e.target.value)} className="no-print" style={{width:"100%",padding:"6px",border:"1px solid #e2e8f0",borderRadius:"4px",fontSize:"11px",marginBottom:"6px",fontWeight:"bold",color:decision==="PROMOTED"?"#059669":"#dc2626"}}>
+                <option>PROMOTED</option>
+                <option>REPEAT</option>
+                <option>EXCLUDED</option>
+                <option>WITHDRAWN</option>
+              </select>
+              <div style={{textAlign:"center",fontSize:"16px",fontWeight:"bold",color:decision==="PROMOTED"?"#059669":"#dc2626",border:"2px solid",borderColor:decision==="PROMOTED"?"#059669":"#dc2626",borderRadius:"6px",padding:"4px"}}>
+                {decision}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SIGNATURES */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginTop:"8px",padding:"8px",border:"1px solid #e2e8f0",borderRadius:"6px",background:"#fff",fontSize:"10px",color:"#1e293b"}}>
+          <div>
+            Class Master / Maitre de Classe: 
+            <input value={classMaster} onChange={e=>setClassMaster(e.target.value)} className="no-print" placeholder="Name" style={{borderBottom:"1px solid #334155",outline:"none",marginLeft:"4px",fontSize:"10px",width:"120px"}} />
+            <div style={{marginTop:"20px",borderTop:"1px solid #334155",paddingTop:"2px"}}>Signature</div>
+          </div>
+          <div>
+            Principal / Proviseur:
+            <div style={{marginTop:"20px",borderTop:"1px solid #334155",paddingTop:"2px"}}>Date & Signature</div>
+          </div>
+        </div>
+
+        <div style={{textAlign:"center",fontSize:"8px",color:"#94a3b8",marginTop:"8px"}}>
+          Powered by ReportCard Pro — Suh Ebook Empire
+        </div>
       </div>
     </div>
   );
