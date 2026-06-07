@@ -19,9 +19,9 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      const sq = query(collection(db, "students"), where("schoolId", "==", schoolId), orderBy("name"));
+      const sq = query(collection(db, "students"), where("schoolId", "==", schoolId));
       const sSnap = await getDocs(sq);
-      setStudents(sSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setStudents(sSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b)=>a.name.localeCompare(b.name)));
       const cq = query(collection(db, "classes"), where("schoolId", "==", schoolId));
       const cSnap = await getDocs(cq);
       setClasses(cSnap.docs.map(d => ({ id: d.id, ...d.data() })));
