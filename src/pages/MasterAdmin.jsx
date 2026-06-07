@@ -112,6 +112,7 @@ export default function MasterAdmin() {
           <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
             <button onClick={()=>copyLink(selectedSchool.code)} style={{padding:"10px 16px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>{copied===selectedSchool.code?"✓ Copied!":"Copy Link"}</button>
             <button onClick={()=>toggleSchool(selectedSchool.id,selectedSchool.active)} style={{padding:"10px 16px",background:selectedSchool.active?"rgba(239,68,68,0.1)":"rgba(16,185,129,0.1)",border:"1px solid "+(selectedSchool.active?"rgba(239,68,68,0.3)":"rgba(16,185,129,0.3)"),borderRadius:"8px",color:selectedSchool.active?"#fca5a5":"#34d399",fontSize:"12px",cursor:"pointer"}}>{selectedSchool.active?"Deactivate":"Activate"}</button>
+            <button onClick={()=>{deleteSchool(selectedSchool.id,selectedSchool.name);setSelectedSchool(null);}} disabled={deleting===selectedSchool.id} style={{padding:"10px 16px",background:"rgba(239,68,68,0.15)",border:"1px solid rgba(239,68,68,0.4)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>{deleting===selectedSchool.id?"Deleting...":"🗑 Delete School"}</button>
           </div>
         </div>
         <div style={{background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:"12px",padding:"16px",textAlign:"center"}}>
