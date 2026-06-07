@@ -61,7 +61,6 @@ export default function Dashboard() {
           </div>
           <button onClick={handleLogout} style={{padding:"6px 14px",background:"rgba(239,68,68,0.2)",border:"1px solid rgba(239,68,68,0.5)",borderRadius:"8px",color:"#ff6b6b",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>Logout</button>
         </div>
-        </div>
         <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginTop:"8px"}}>
           <Link to="/add-student" style={{padding:"6px 12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",textDecoration:"none"}}>+ Student</Link>
           <Link to="/classes" style={{padding:"6px 12px",background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"8px",color:"#a78bfa",fontSize:"12px",textDecoration:"none"}}>Classes</Link>
