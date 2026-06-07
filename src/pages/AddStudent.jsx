@@ -8,7 +8,7 @@ import { LEVELS, SPECIALTIES } from "../utils/grading";
 export default function AddStudent() {
   const { user, school } = useAuth();
   const navigate = useNavigate();
-  const schoolId = school?.id || localStorage.getItem("schoolId") || user?.uid;
+  const schoolId = localStorage.getItem("schoolId") || school?.id || user?.uid;
   const [form, setForm] = useState({ name:"", level:"Form 1", classSection:"", admissionNumber:"", gender:"Male", dateOfBirth:"", section:"Grammar", specialty:"" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
