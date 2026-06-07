@@ -32,6 +32,21 @@ export default function Dashboard() {
   useEffect(() => { fetchData(); }, [schoolId]);
 
   useEffect(() => {
+    const checkActive = async () => {
+      const code = localStorage.getItem("schoolCode");
+      if (!code) return;
+      const { collection, getDocs, query, where } = await import("firebase/firestore");
+      const q = query(collection(db, "schools"), where("code", "==", code));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const s = snap.docs[0].data();
+        if (s.active === false) { await logout(); navigate("/school/" + code); }
+      }
+    };
+    if (schoolId) checkActive();
+  }, [schoolId]);
+
+  useEffect(() => {
     const code = localStorage.getItem("schoolCode");
     if (!code && !user) { navigate("/login"); }
   }, [user]);
