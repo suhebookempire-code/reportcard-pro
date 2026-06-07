@@ -33,8 +33,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     const code = localStorage.getItem("schoolCode");
-    if (!code) { logout(); navigate("/login"); }
-  }, []);
+    if (!code && !user) { navigate("/login"); }
+  }, [user]);
 
   const schoolCode = school?.code || "";
   const handleLogout = async () => { await logout(); if (schoolCode) navigate("/school/" + schoolCode); else navigate("/login"); };
