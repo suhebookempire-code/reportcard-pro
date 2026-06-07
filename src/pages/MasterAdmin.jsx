@@ -19,6 +19,8 @@ export default function MasterAdmin() {
   const [msg, setMsg] = useState("");
   const [copied, setCopied] = useState("");
   const [creatingAdmin, setCreatingAdmin] = useState("");
+  const [adminForm, setAdminForm] = useState({ schoolId:"", schoolName:"", email:"", password:"" });
+  const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminMsg, setAdminMsg] = useState("");
 
   useEffect(() => { if (isAuth) fetchSchools(); }, [isAuth]);
@@ -153,6 +155,7 @@ export default function MasterAdmin() {
                   <button onClick={()=>toggleSchool(school.id,school.active)} style={{padding:"6px 12px",background:school.active?"rgba(16,185,129,0.1)":"rgba(234,179,8,0.1)",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(234,179,8,0.3)"),borderRadius:"6px",color:school.active?"#10b981":"#eab308",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{school.active?"Deactivate":"Activate"}</button>
                   <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"6px 12px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{creatingAdmin===school.id?"Creating...":"+ Create Admin"}</button>
                   <button onClick={()=>copyLink(school.code)} style={{padding:"6px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{copied===school.code?"Copied!":"Copy Link"}</button>
+                  <button onClick={()=>{setAdminForm({schoolId:school.id,schoolName:school.name,email:"",password:""});setShowAdminForm(true);}} style={{padding:"6px 12px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>+ Create Admin</button>
                   <button onClick={()=>deleteSchool(school.id,school.name)} disabled={deleting===school.id} style={{padding:"6px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>{deleting===school.id?"...":"Delete"}</button>
                 </div>
               </div>
