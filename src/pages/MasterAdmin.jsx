@@ -3,25 +3,27 @@ import { db } from "../firebase/config";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-const MASTER_PASSWORD = "master123"; // v5
-const schoolAuth = getAuth();
+const MASTER_PASSWORD = "Suebem2040";
 const APP_URL = "https://reportcard-pro-suhebookempires-projects.vercel.app";
+const schoolAuth = getAuth();
 
 export default function MasterAdmin() {
   const [isAuth, setIsAuth] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [schools, setSchools] = useState([]);
-  const [tab, setTab] = useState("schools");
-  const [newSchool, setNewSchool] = useState({ name:"", location:"", adminEmail:"", phone:"", code:"", adminPassword:"" });
+  const [tab, setTab] = useState("admins");
+  const [schoolIdx, setSchoolIdx] = useState(0);
+  const [newSchool, setNewSchool] = useState({ name:"", location:"", phone:"", adminEmail:"", adminPassword:"", code:"" });
   const [loading, setLoading] = useState(false);
-  const [deleting, setDeleting] = useState("");
   const [msg, setMsg] = useState("");
   const [copied, setCopied] = useState("");
+  const [deleting, setDeleting] = useState("");
   const [creatingAdmin, setCreatingAdmin] = useState("");
-  const [adminForm, setAdminForm] = useState({ schoolId:"", schoolName:"", email:"", password:"" });
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [showAdminForm, setShowAdminForm] = useState(false);
-  const [adminMsg, setAdminMsg] = useState("");
+  const [selectedSchool, setSelectedSchool] = useState(null);
 
   useEffect(() => { if (isAuth) fetchSchools(); }, [isAuth]);
 
@@ -36,12 +38,15 @@ export default function MasterAdmin() {
   };
 
   const addSchool = async () => {
-    if (!newSchool.name || !newSchool.code || !newSchool.adminEmail || !newSchool.adminPassword) { setMsg("Name, code, admin email and password required."); return; }
+    if (!newSchool.name || !newSchool.code) { setMsg("Name and code required."); return; }
     setLoading(true);
-    try { await createUserWithEmailAndPassword(schoolAuth, newSchool.adminEmail, newSchool.adminPassword); } catch(e) { if (e.code !== "auth/email-already-in-use") { setMsg("Error creating admin: " + e.message); setLoading(false); return; } }
+    if (newSchool.adminEmail && newSchool.adminPassword) {
+      try { await createUserWithEmailAndPassword(schoolAuth, newSchool.adminEmail, newSchool.adminPassword); }
+      catch(e) { if (e.code !== "auth/email-already-in-use") { setMsg("Error: " + e.message); setLoading(false); return; } }
+    }
     await addDoc(collection(db, "schools"), { ...newSchool, active: true, createdAt: serverTimestamp() });
     setMsg("School added successfully!");
-    setNewSchool({ name:"", location:"", email:"", phone:"", code:"" });
+    setNewSchool({ name:"", location:"", phone:"", adminEmail:"", adminPassword:"", code:"" });
     setTab("schools");
     await fetchSchools();
     setLoading(false);
@@ -54,39 +59,32 @@ export default function MasterAdmin() {
   };
 
   const deleteSchool = async (id, name) => {
-    if (!window.confirm("Delete " + name + "? This cannot be undone.")) return;
+    if (!window.confirm("Delete " + name + "?")) return;
     setDeleting(id);
     await deleteDoc(doc(db, "schools", id));
     await fetchSchools();
     setDeleting("");
   };
 
-  const createAdmin = async (school) => {
-    const email = window.prompt("Enter admin email for " + school.name + ":");
-    if (!email) return;
-    const password = window.prompt("Enter password (min 6 characters):");
-    if (!password || password.length < 6) { alert("Password must be at least 6 characters."); return; }
-    setCreatingAdmin(school.id);
-    try {
-      await createUserWithEmailAndPassword(schoolAuth, email, password);
-      setAdminMsg("Admin account created: " + email);
-      setTimeout(() => setAdminMsg(""), 4000);
-    } catch(e) {
-      if (e.code === "auth/email-already-in-use") {
-        setAdminMsg("Account already exists for: " + email);
-      } else {
-        setAdminMsg("Error: " + e.message);
-      }
-      setTimeout(() => setAdminMsg(""), 4000);
-    }
-    setCreatingAdmin("");
-  };
-
   const copyLink = (code) => {
-    const link = APP_URL + "/school/" + code;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(APP_URL + "/school/" + code);
     setCopied(code);
     setTimeout(() => setCopied(""), 2000);
+  };
+
+  const createAdmin = async () => {
+    if (!adminEmail || !adminPassword) { setMsg("Email and password required."); return; }
+    setCreatingAdmin(selectedSchool.id);
+    try {
+      await createUserWithEmailAndPassword(schoolAuth, adminEmail, adminPassword);
+      setMsg("Admin created: " + adminEmail);
+      setShowAdminForm(false);
+      setAdminEmail(""); setAdminPassword("");
+    } catch(e) {
+      setMsg(e.code === "auth/email-already-in-use" ? "Email already exists!" : "Error: " + e.message);
+    }
+    setCreatingAdmin("");
+    setTimeout(() => setMsg(""), 4000);
   };
 
   if (!isAuth) return (
@@ -97,13 +95,13 @@ export default function MasterAdmin() {
             <span style={{fontSize:"24px",fontWeight:"bold",color:"#0a0f1e"}}>RC</span>
           </div>
           <h1 style={{color:"#eab308",fontSize:"20px",margin:"0 0 4px"}}>ReportCard Pro</h1>
-          <p style={{color:"#64748b",fontSize:"12px",margin:0}}>Master Administrator — Gerald Neba</p>
+          <p style={{color:"#64748b",fontSize:"12px",margin:0}}>Master Administrator - Gerald Neba</p>
           <p style={{color:"#475569",fontSize:"11px",margin:"4px 0 0",fontStyle:"italic"}}>Powered by Suh Ebook Empire</p>
         </div>
         <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(234,179,8,0.2)",borderRadius:"16px",padding:"28px"}}>
           <h2 style={{color:"#fff",fontSize:"16px",margin:"0 0 20px"}}>Master Login</h2>
           {error && <div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",padding:"10px",marginBottom:"16px",color:"#fca5a5",fontSize:"13px"}}>{error}</div>}
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter" && password===MASTER_PASSWORD) setIsAuth(true); }} placeholder="Master Password" style={{width:"100%",padding:"12px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"14px",outline:"none",boxSizing:"border-box",marginBottom:"16px"}} />
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter") { if(password===MASTER_PASSWORD){setIsAuth(true);}else{setError("Invalid password.");} }}} placeholder="Master Password" style={{width:"100%",padding:"12px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"14px",outline:"none",boxSizing:"border-box",marginBottom:"16px"}} />
           <button onClick={()=>{ if(password===MASTER_PASSWORD){setIsAuth(true);}else{setError("Invalid master password.");}}} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"14px",cursor:"pointer"}}>
             Access Master Panel
           </button>
@@ -112,50 +110,97 @@ export default function MasterAdmin() {
     </div>
   );
 
+  const currentSchool = schools[schoolIdx];
+
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
-      <div style={{background:"linear-gradient(135deg,#1a0a00,#2d1600)",borderBottom:"1px solid rgba(234,179,8,0.3)",padding:"0 24px",display:"flex",alignItems:"center",justifyContent:"space-between",height:"56px"}}>
+      <div style={{background:"linear-gradient(135deg,#1a0a00,#2d1600)",borderBottom:"1px solid rgba(234,179,8,0.3)",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
           <div style={{width:"32px",height:"32px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#0a0f1e",fontSize:"12px"}}>RC</div>
           <div>
             <div style={{fontSize:"13px",fontWeight:"bold",color:"#eab308"}}>Master Admin Panel</div>
-            <div style={{fontSize:"10px",color:"#92400e"}}>Gerald Neba — Suh Ebook Empire</div>
+            <div style={{fontSize:"10px",color:"#92400e"}}>Gerald Neba - Suh Ebook Empire</div>
           </div>
         </div>
         <button onClick={()=>setIsAuth(false)} style={{padding:"6px 14px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>Logout</button>
       </div>
 
-      <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.05)",padding:"0 24px"}}>
-        {[{id:"schools",label:"All Schools"},{id:"add",label:"+ Add School"}].map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"12px 16px",background:"none",border:"none",borderBottom:tab===t.id?"2px solid #eab308":"2px solid transparent",color:tab===t.id?"#eab308":"#64748b",fontSize:"13px",cursor:"pointer",fontWeight:tab===t.id?"bold":"normal"}}>
+      <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+        {[{id:"admins",label:"School Admins"},{id:"schools",label:"All Schools"},{id:"add",label:"+ Add School"}].map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,padding:"12px 4px",background:"none",border:"none",borderBottom:tab===t.id?"2px solid #eab308":"2px solid transparent",color:tab===t.id?"#eab308":"#64748b",fontSize:"11px",cursor:"pointer",fontWeight:tab===t.id?"bold":"normal"}}>
             {t.label}
           </button>
         ))}
       </div>
 
-      <div style={{padding:"20px",maxWidth:"900px",margin:"0 auto"}}>
+      <div style={{padding:"16px",maxWidth:"600px",margin:"0 auto"}}>
         {msg && <div style={{background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",padding:"10px 16px",marginBottom:"16px",color:"#34d399",fontSize:"13px"}}>{msg}</div>}
+
+        {tab === "admins" && (
+          <div>
+            {schools.length === 0 ? (
+              <div style={{textAlign:"center",padding:"40px",color:"#475569"}}>No schools yet. Add a school first.</div>
+            ) : (
+              <div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
+                  <button onClick={()=>setSchoolIdx(i=>Math.max(0,i-1))} disabled={schoolIdx===0} style={{padding:"8px 16px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:schoolIdx===0?"#334155":"#94a3b8",cursor:schoolIdx===0?"not-allowed":"pointer"}}>← Back</button>
+                  <span style={{fontSize:"12px",color:"#64748b"}}>{schoolIdx+1} / {schools.length}</span>
+                  <button onClick={()=>setSchoolIdx(i=>Math.min(schools.length-1,i+1))} disabled={schoolIdx===schools.length-1} style={{padding:"8px 16px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:schoolIdx===schools.length-1?"#334155":"#94a3b8",cursor:schoolIdx===schools.length-1?"not-allowed":"pointer"}}>Next →</button>
+                </div>
+                {currentSchool && (
+                  <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"12px",padding:"20px"}}>
+                    <h2 style={{color:"#fff",fontSize:"18px",margin:"0 0 4px"}}>{currentSchool.name}</h2>
+                    <p style={{color:"#64748b",fontSize:"13px",margin:"0 0 2px"}}>{currentSchool.location}</p>
+                    {currentSchool.phone && <p style={{color:"#64748b",fontSize:"12px",margin:"0 0 8px"}}>Tel: {currentSchool.phone}</p>}
+                    <p style={{color:"#eab308",fontSize:"12px",margin:"0 0 16px"}}>Code: <strong>{currentSchool.code}</strong></p>
+                    <div style={{background:"rgba(255,255,255,0.02)",borderRadius:"8px",padding:"10px",marginBottom:"16px",fontSize:"11px",color:"#475569",wordBreak:"break-all"}}>
+                      {APP_URL}/school/{currentSchool.code}
+                    </div>
+                    {!showAdminForm ? (
+                      <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
+                        <button onClick={()=>copyLink(currentSchool.code)} style={{padding:"10px 16px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>{copied===currentSchool.code?"✓ Copied!":"Copy Link"}</button>
+                        <button onClick={()=>{setSelectedSchool(currentSchool);setShowAdminForm(true);}} style={{padding:"10px 16px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>+ Create Admin</button>
+                        <button onClick={()=>toggleSchool(currentSchool.id,currentSchool.active)} style={{padding:"10px 16px",background:currentSchool.active?"rgba(239,68,68,0.1)":"rgba(16,185,129,0.1)",border:"1px solid "+(currentSchool.active?"rgba(239,68,68,0.3)":"rgba(16,185,129,0.3)"),borderRadius:"8px",color:currentSchool.active?"#fca5a5":"#34d399",fontSize:"12px",cursor:"pointer"}}>{currentSchool.active?"Deactivate":"Activate"}</button>
+                        <button onClick={()=>deleteSchool(currentSchool.id,currentSchool.name)} disabled={deleting===currentSchool.id} style={{padding:"10px 16px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>{deleting===currentSchool.id?"...":"Delete"}</button>
+                      </div>
+                    ) : (
+                      <div>
+                        <h3 style={{color:"#60a5fa",fontSize:"14px",margin:"0 0 12px"}}>Create Admin for {selectedSchool?.name}</h3>
+                        <input value={adminEmail} onChange={e=>setAdminEmail(e.target.value)} placeholder="Admin Email *" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"8px"}} />
+                        <input type="password" value={adminPassword} onChange={e=>setAdminPassword(e.target.value)} placeholder="Password * (min 6 chars)" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"12px"}} />
+                        <div style={{display:"flex",gap:"8px"}}>
+                          <button onClick={createAdmin} disabled={creatingAdmin!=""} style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",border:"none",borderRadius:"8px",color:"#fff",fontWeight:"bold",fontSize:"13px",cursor:"pointer"}}>{creatingAdmin?"Creating...":"Create Admin"}</button>
+                          <button onClick={()=>{setShowAdminForm(false);setAdminEmail("");setAdminPassword("");}} style={{padding:"10px 16px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#94a3b8",fontSize:"13px",cursor:"pointer"}}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {tab === "schools" && (
           <div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"20px"}}>
-              {[{label:"Total Schools",value:schools.length,color:"#eab308"},{label:"Active",value:schools.filter(s=>s.active).length,color:"#10b981"},{label:"Inactive",value:schools.filter(s=>!s.active).length,color:"#ef4444"}].map(s=>(
-                <div key={s.label} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"10px",padding:"16px",textAlign:"center"}}>
-                  <div style={{fontSize:"28px",fontWeight:"bold",color:s.color}}>{s.value}</div>
-                  <div style={{fontSize:"12px",color:"#64748b"}}>{s.label}</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px",marginBottom:"16px"}}>
+              {[{label:"Total",value:schools.length,color:"#eab308"},{label:"Active",value:schools.filter(s=>s.active).length,color:"#10b981"},{label:"Inactive",value:schools.filter(s=>!s.active).length,color:"#ef4444"}].map(s=>(
+                <div key={s.label} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"10px",padding:"12px",textAlign:"center"}}>
+                  <div style={{fontSize:"24px",fontWeight:"bold",color:s.color}}>{s.value}</div>
+                  <div style={{fontSize:"11px",color:"#64748b"}}>{s.label}</div>
                 </div>
               ))}
             </div>
-              <div key={school.id} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"10px",padding:"14px 16px",marginBottom:"8px"}}>
-                <div style={{fontSize:"15px",color:"#fff",fontWeight:"bold",marginBottom:"2px"}}>{school.name}</div>
+            {schools.length === 0 ? (
+              <div style={{textAlign:"center",padding:"40px",color:"#475569"}}>No schools yet.</div>
+            ) : schools.map(school=>(
+              <div key={school.id} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"10px",padding:"14px",marginBottom:"8px"}}>
+                <div style={{fontSize:"15px",color:"#fff",fontWeight:"bold"}}>{school.name}</div>
                 <div style={{fontSize:"12px",color:"#64748b"}}>{school.location}</div>
-                {school.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Tel: {school.phone}</div>}
-                <div style={{fontSize:"12px",color:"#eab308",marginTop:"2px",marginBottom:"10px"}}>Code: <strong>{school.code}</strong></div>
+                <div style={{fontSize:"12px",color:"#eab308",margin:"4px 0 10px"}}>Code: <strong>{school.code}</strong></div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
-                  <button onClick={()=>toggleSchool(school.id,school.active)} style={{padding:"6px 12px",background:school.active?"rgba(16,185,129,0.1)":"rgba(234,179,8,0.1)",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(234,179,8,0.3)"),borderRadius:"6px",color:school.active?"#10b981":"#eab308",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{school.active?"Deactivate":"Activate"}</button>
-                  <button onClick={()=>createAdmin(school)} disabled={creatingAdmin===school.id} style={{padding:"6px 12px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{creatingAdmin===school.id?"Creating...":"+ Create Admin"}</button>
-                  <button onClick={()=>copyLink(school.code)} style={{padding:"6px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>{copied===school.code?"Copied!":"Copy Link"}</button>
-                  <button onClick={()=>{setAdminForm({schoolId:school.id,schoolName:school.name,email:"",password:""});setShowAdminForm(true);}} style={{padding:"6px 12px",background:"rgba(59,130,246,0.2)",border:"1px solid rgba(59,130,246,0.5)",borderRadius:"6px",color:"#60a5fa",fontSize:"11px",cursor:"pointer",fontWeight:"bold"}}>+ Create Admin</button>
+                  <button onClick={()=>copyLink(school.code)} style={{padding:"6px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"6px",color:"#eab308",fontSize:"11px",cursor:"pointer"}}>{copied===school.code?"Copied!":"Copy Link"}</button>
+                  <button onClick={()=>toggleSchool(school.id,school.active)} style={{padding:"6px 12px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"6px",color:"#94a3b8",fontSize:"11px",cursor:"pointer"}}>{school.active?"Deactivate":"Activate"}</button>
                   <button onClick={()=>deleteSchool(school.id,school.name)} disabled={deleting===school.id} style={{padding:"6px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>{deleting===school.id?"...":"Delete"}</button>
                 </div>
               </div>
@@ -164,22 +209,18 @@ export default function MasterAdmin() {
         )}
 
         {tab === "add" && (
-          <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"24px",maxWidth:"500px"}}>
-            <h3 style={{color:"#eab308",fontSize:"15px",margin:"0 0 20px"}}>Register New School</h3>
-            {[{name:"name",placeholder:"School Name *"},{name:"location",placeholder:"Location / Localisation"},{name:"phone",placeholder:"Phone / Telephone"},{name:"adminEmail",placeholder:"Admin Email * (for school login)"},{name:"adminPassword",placeholder:"Admin Password * (min 6 chars)"}].map(f=>(
-              <input key={f.name} value={newSchool[f.name]} onChange={e=>setNewSchool(s=>({...s,[f.name]:e.target.value}))} placeholder={f.placeholder} style={{width:"100%",padding:"10px 12px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"10px"}} />
+          <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"20px"}}>
+            <h3 style={{color:"#eab308",fontSize:"15px",margin:"0 0 16px"}}>Register New School</h3>
+            {[{name:"name",placeholder:"School Name *"},{name:"location",placeholder:"Location"},{name:"phone",placeholder:"Phone / Telephone"},{name:"adminEmail",placeholder:"Admin Email * (for login)"},{name:"adminPassword",placeholder:"Admin Password * (min 6 chars)"}].map(f=>(
+              <input key={f.name} value={newSchool[f.name]} onChange={e=>setNewSchool(s=>({...s,[f.name]:e.target.value}))} placeholder={f.placeholder} type={f.name==="adminPassword"?"password":"text"} style={{width:"100%",padding:"10px 12px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"10px"}} />
             ))}
             <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
-              <input value={newSchool.code} onChange={e=>setNewSchool(s=>({...s,code:e.target.value}))} placeholder="Activation Code *" style={{flex:1,padding:"10px 12px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box"}} />
-              <button onClick={generateCode} style={{padding:"10px 14px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer",whiteSpace:"nowrap"}}>Generate</button>
+              <input value={newSchool.code} onChange={e=>setNewSchool(s=>({...s,code:e.target.value}))} placeholder="Activation Code *" style={{flex:1,padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}} />
+              <button onClick={generateCode} style={{padding:"10px 14px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer"}}>Generate</button>
             </div>
             <button onClick={addSchool} disabled={loading} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"14px",cursor:"pointer"}}>
               {loading?"Adding...":"Add School"}
             </button>
-            <div style={{marginTop:"16px",padding:"12px",background:"rgba(234,179,8,0.05)",border:"1px solid rgba(234,179,8,0.1)",borderRadius:"8px"}}>
-              <p style={{fontSize:"11px",color:"#64748b",margin:"0 0 4px"}}>App URL to share with school:</p>
-              <p style={{fontSize:"11px",color:"#eab308",margin:0,wordBreak:"break-all"}}>{APP_URL}</p>
-            </div>
           </div>
         )}
       </div>
