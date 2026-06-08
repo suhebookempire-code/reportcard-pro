@@ -107,8 +107,9 @@ export default function Teachers() {
               </div>
               <div style={{display:"flex",gap:"6px"}}>
                 <button onClick={()=>copyLink(teacher.token)} style={{padding:"7px 12px",background:copied===teacher.token?"rgba(16,185,129,0.2)":"rgba(234,179,8,0.1)",border:"1px solid "+(copied===teacher.token?"rgba(16,185,129,0.4)":"rgba(234,179,8,0.3)"),borderRadius:"8px",color:copied===teacher.token?"#10b981":"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
-                  {copied===teacher.token?"Copied!":"Copy Link"}
+                  {copied===teacher.token?"✓ Copied!":"Copy Link"}
                 </button>
+                <button onClick={()=>{const url=BASE_URL+"/teacher/"+teacher.token;if(navigator.share){navigator.share({title:teacher.name+" — Teacher Portal",text:"Access your teacher portal for "+(school?.name||"school"),url:url});}else{navigator.clipboard.writeText(url);}}} style={{padding:"7px 12px",background:"rgba(99,102,241,0.15)",border:"1px solid rgba(99,102,241,0.4)",borderRadius:"8px",color:"#a5b4fc",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>📤 Share</button>
                 <button onClick={()=>deleteTeacher(teacher.id,teacher.name)} disabled={deleting===teacher.id} style={{padding:"7px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>
                   {deleting===teacher.id?"...":"Delete"}
                 </button>

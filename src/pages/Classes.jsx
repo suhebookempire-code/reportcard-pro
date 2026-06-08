@@ -121,6 +121,7 @@ export default function Classes() {
                   <button onClick={()=>copyLink(cls.token)} style={{padding:"6px 12px",background:copied===cls.token?"rgba(16,185,129,0.2)":"rgba(234,179,8,0.1)",border:"1px solid "+(copied===cls.token?"rgba(16,185,129,0.4)":"rgba(234,179,8,0.3)"),borderRadius:"8px",color:copied===cls.token?"#10b981":"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
                     {copied===cls.token?"Copied!":"Copy Link"}
                   </button>
+                  <button onClick={()=>{const url=BASE_URL+"/class/"+cls.token;if(navigator.share){navigator.share({title:cls.name+" — Class Portal",text:"Access class portal",url:url});}else{navigator.clipboard.writeText(url);}}} style={{padding:"6px 12px",background:"rgba(99,102,241,0.15)",border:"1px solid rgba(99,102,241,0.4)",borderRadius:"8px",color:"#a5b4fc",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>📤 Share</button>
                   <button onClick={()=>deleteClass(cls.id,cls.name)} disabled={deleting===cls.id} style={{padding:"6px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>
                     {deleting===cls.id?"...":"Delete"}
                   </button>
