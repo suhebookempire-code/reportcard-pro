@@ -13,7 +13,7 @@ function generateToken() {
 
 export default function Teachers() {
   const { user, school } = useAuth();
-  const schoolId = school?.id || user?.uid;
+  const schoolId = sessionStorage.getItem("schoolId") || sessionStorage.getItem("schoolId") || school?.id || user?.uid;
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);

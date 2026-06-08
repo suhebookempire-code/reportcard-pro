@@ -25,7 +25,7 @@ export default function Classes() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState("");
   const [copied, setCopied] = useState("");
-  const schoolId = school?.id || user?.uid;
+  const schoolId = sessionStorage.getItem("schoolId") || sessionStorage.getItem("schoolId") || school?.id || user?.uid;
 
   const fetchData = async () => {
     const cq = query(collection(db, "classes"), where("schoolId", "==", schoolId));
