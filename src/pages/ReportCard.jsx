@@ -14,6 +14,16 @@ export default function ReportCard() {
   const [year, setYear] = useState("2025/2026");
   const [term, setTerm] = useState("Third Term / Troisieme Trimestre");
   const [logo, setLogo] = useState(null);
+  const [header, setHeader] = useState({
+    subtitle: "GENERAL, COMMERCIAL & TECHNICAL EDUCATION",
+    tel: "", motto: "EMPOWERED TO SERVE"
+  });
+
+  const saveHeader = async (field, value) => {
+    const newHeader = {...header, [field]: value};
+    setHeader(newHeader);
+    await setDoc(doc(db, "schoolInfo", student?.schoolName || "default"), newHeader, {merge: true});
+  };
   const [classSize, setClassSize] = useState("");
   const [position, setPosition] = useState("");
   const [classAvg, setClassAvg] = useState("");
@@ -32,6 +42,8 @@ export default function ReportCard() {
         setStudent(s);
         const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName || "default"));
         if (logoSnap.exists()) setLogo(logoSnap.data().logo);
+        const infoSnap2 = await getDoc(doc(db, "schoolInfo", s.schoolName || "default"));
+        if (infoSnap2.exists()) setHeader(prev => ({...prev, ...infoSnap2.data()}));
         const infoSnap = await getDoc(doc(db, "reportMeta", id));
         if (infoSnap.exists()) {
           const d = infoSnap.data();
@@ -186,10 +198,10 @@ export default function ReportCard() {
               {logo && <label className="no-print" style={{display:"block",textAlign:"center",cursor:"pointer",fontSize:"8px",color:"#3b82f6",marginTop:"2px"}}>✏️ Change<input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} /></label>}
             </div>
             <div style={{flex:1,textAlign:"center"}}>
-              <div contentEditable suppressContentEditableWarning style={{fontSize:"15px",fontWeight:"bold",color:"#1e3a5f",textTransform:"uppercase",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{(student.schoolName||"SCHOOL NAME").toUpperCase()}</div>
-              <div contentEditable suppressContentEditableWarning style={{fontSize:"10px",color:"#475569",margin:"2px 0",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>GENERAL, COMMERCIAL & TECHNICAL EDUCATION</div>
-              <div contentEditable suppressContentEditableWarning style={{fontSize:"10px",color:"#475569",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>Tel: {student.schoolPhone||"_________"} | Email: _________ | North West Region, Cameroon</div>
-              <div contentEditable suppressContentEditableWarning style={{fontSize:"10px",color:"#1e3a5f",fontWeight:"bold",marginTop:"2px",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>Motto: EMPOWERED TO SERVE</div>
+              <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("name",e.target.innerText)} style={{fontSize:"15px",fontWeight:"bold",color:"#1e3a5f",textTransform:"uppercase",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{(student.schoolName||"SCHOOL NAME").toUpperCase()}</div>
+              <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("subtitle",e.target.innerText)} style={{fontSize:"10px",color:"#475569",margin:"2px 0",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{header.subtitle}</div>
+              <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("tel",e.target.innerText)} style={{fontSize:"10px",color:"#475569",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{header.tel||"Tel: _________ | Email: _________ | North West Region, Cameroon"}</div>
+              <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("motto",e.target.innerText)} style={{fontSize:"10px",color:"#1e3a5f",fontWeight:"bold",marginTop:"2px",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{header.motto}</div>
             </div>
           </div>
 
