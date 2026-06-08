@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [deleting, setDeleting] = useState("");
   const [tab, setTab] = useState("students");
 
-  const schoolId = localStorage.getItem("schoolId") || school?.id || user?.uid;
+  const schoolId = sessionStorage.getItem("schoolId") || school?.id || user?.uid;
 
   const fetchData = async () => {
     try {
@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const checkActive = async () => {
-      const code = localStorage.getItem("schoolCode");
+      const code = sessionStorage.getItem("schoolCode");
       if (!code) return;
       const { collection, getDocs, query, where } = await import("firebase/firestore");
       const q = query(collection(db, "schools"), where("code", "==", code));
@@ -47,7 +47,7 @@ export default function Dashboard() {
   }, [schoolId]);
 
   useEffect(() => {
-    const code = localStorage.getItem("schoolCode");
+    const code = sessionStorage.getItem("schoolCode");
     if (!code && !user) { navigate("/login"); }
   }, [user]);
 

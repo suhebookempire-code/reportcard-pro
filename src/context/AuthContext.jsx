@@ -11,14 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const schoolCode = localStorage.getItem("schoolCode");
+    const schoolCode = sessionStorage.getItem("schoolCode");
     if (schoolCode) {
       signInAnonymously(auth).catch(() => {});
     }
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
         setUser(u);
-        const code = localStorage.getItem("schoolCode");
+        const code = sessionStorage.getItem("schoolCode");
         if (code) {
           const q = query(collection(db, "schools"), where("code", "==", code));
           const snap = await getDocs(q);
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
-  const logout = () => { localStorage.removeItem("schoolCode"); localStorage.removeItem("schoolId"); localStorage.removeItem("schoolName"); return signOut(auth); };
+  const logout = () => { sessionStorage.removeItem("schoolCode"); sessionStorage.removeItem("schoolId"); sessionStorage.removeItem("schoolName"); return signOut(auth); };
 
   return (
     <AuthContext.Provider value={{ user, school, loading, login, logout }}>

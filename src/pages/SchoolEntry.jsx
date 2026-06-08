@@ -18,9 +18,9 @@ export default function SchoolEntry() {
         const s = { id: snap.docs[0].id, ...snap.docs[0].data() };
         if (s.active === false) { setStatus("inactive"); return; }
         setSchool(s);
-        localStorage.setItem("schoolCode", code);
-        localStorage.setItem("schoolId", s.id);
-        localStorage.setItem("schoolName", s.name);
+        sessionStorage.setItem("schoolCode", code);
+        sessionStorage.setItem("schoolId", s.id);
+        sessionStorage.setItem("schoolName", s.name);
         setStatus("entering");
         setTimeout(() => navigate("/"), 2000);
       } catch(e) { setStatus("error"); }
