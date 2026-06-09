@@ -15,7 +15,9 @@ import SchoolEntry from "./pages/SchoolEntry";
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div style={{color:"white",background:"#0a0f1e",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>Loading...</div>;
-  return user ? children : <Navigate to="/login" />;
+  const schoolCode = sessionStorage.getItem("schoolCode");
+  if (!user && !schoolCode) return <Navigate to="/login" />;
+  return children;
 }
 
 export default function App() {
