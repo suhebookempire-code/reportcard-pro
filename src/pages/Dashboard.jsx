@@ -134,6 +134,7 @@ export default function Dashboard() {
               <div style={{display:"flex",gap:"6px"}}>
                 <Link to={"/enter-scores/"+student.id} style={{padding:"5px 10px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.2)",borderRadius:"6px",color:"#eab308",fontSize:"11px",textDecoration:"none",fontWeight:"bold"}}>Scores</Link>
                 <Link to={"/report/"+student.id} style={{padding:"5px 10px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"6px",color:"#94a3b8",fontSize:"11px",textDecoration:"none"}}>Report</Link>
+                <Link to={"/charts/"+student.id} style={{padding:"5px 10px",background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:"6px",color:"#a5b4fc",fontSize:"11px",textDecoration:"none"}}>Charts</Link>
                 <button onClick={()=>deleteStudent(student.id,student.name)} disabled={deleting===student.id} style={{padding:"5px 10px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:"6px",color:"#fca5a5",fontSize:"11px",cursor:"pointer"}}>
                   {deleting===student.id?"...":"Delete"}
                 </button>
