@@ -76,14 +76,13 @@ export default function Dashboard() {
           </div>
           <button onClick={handleLogout} style={{padding:"6px 14px",background:"rgba(239,68,68,0.2)",border:"1px solid rgba(239,68,68,0.5)",borderRadius:"8px",color:"#ff6b6b",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>Logout</button>
         </div>
-        <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginTop:"8px"}}>
-          <Link to="/add-student" style={{padding:"6px 12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",textDecoration:"none"}}>+ Student</Link>
-          <Link to="/notifications" style={{padding:"6px 12px",background:"rgba(37,211,102,0.1)",border:"1px solid rgba(37,211,102,0.3)",borderRadius:"8px",color:"#25d366",fontSize:"12px",textDecoration:"none"}}>WhatsApp</Link>
-          <Link to="/attendance" style={{padding:"6px 12px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none"}}>📅 Attendance</Link>
-          <Link to="/fees" style={{padding:"6px 12px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#34d399",fontSize:"12px",textDecoration:"none"}}>💰 Fees</Link>
-          <Link to="/classes" style={{padding:"6px 12px",background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"8px",color:"#a78bfa",fontSize:"12px",textDecoration:"none"}}>Classes</Link>
-          <Link to="/teachers" style={{padding:"6px 12px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none"}}>Teachers</Link>
-
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"6px",marginTop:"8px"}}>
+          <Link to="/add-student" style={{padding:"8px 4px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>+ Student</Link>
+          <Link to="/classes" style={{padding:"8px 4px",background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"8px",color:"#a78bfa",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>Classes</Link>
+          <Link to="/teachers" style={{padding:"8px 4px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>Teachers</Link>
+          <Link to="/fees" style={{padding:"8px 4px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#34d399",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>💰 Fees</Link>
+          <Link to="/attendance" style={{padding:"8px 4px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>📅 Attendance</Link>
+          <Link to="/notifications" style={{padding:"8px 4px",background:"rgba(37,211,102,0.1)",border:"1px solid rgba(37,211,102,0.3)",borderRadius:"8px",color:"#25d366",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</Link>
         </div>
       </nav>
 
