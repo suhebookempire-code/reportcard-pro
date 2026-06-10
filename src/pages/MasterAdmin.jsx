@@ -50,7 +50,7 @@ export default function MasterAdmin() {
     setTimeout(() => setMsg(""), 3000);
   };
 
-  const toggleSchool = async (id, active) => { await updateDoc(doc(db, "schools", id), { active: !active }); await fetchSchools(); };
+  const toggleSchool = async (id, active) => { await updateDoc(doc(db, "schools", id), { active: !active }); await fetchSchools(); if (selectedSchool && selectedSchool.id === id) setSelectedSchool(s => ({...s, active: !active})); };
 
   const deleteSchool = async (id, name) => {
     if (!window.confirm("Delete " + name + "?")) return;

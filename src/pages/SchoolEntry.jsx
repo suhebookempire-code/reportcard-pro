@@ -16,7 +16,7 @@ export default function SchoolEntry() {
         const snap = await getDocs(q);
         if (snap.empty) { setStatus("notfound"); return; }
         const s = { id: snap.docs[0].id, ...snap.docs[0].data() };
-        if (s.active === false) { setStatus("inactive"); return; }
+        if (!s.active) { setStatus("inactive"); return; }
         setSchool(s);
         sessionStorage.setItem("schoolCode", code);
         sessionStorage.setItem("schoolId", s.id);
