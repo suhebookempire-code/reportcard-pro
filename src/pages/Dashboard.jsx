@@ -80,9 +80,7 @@ export default function Dashboard() {
           <Link to="/add-student" style={{padding:"8px 4px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>+ Student</Link>
           <Link to="/classes" style={{padding:"8px 4px",background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"8px",color:"#a78bfa",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>Classes</Link>
           <Link to="/teachers" style={{padding:"8px 4px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>Teachers</Link>
-          <Link to="/fees" style={{padding:"8px 4px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#34d399",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>💰 Fees</Link>
-          <Link to="/attendance" style={{padding:"8px 4px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>📅 Attendance</Link>
-          <Link to="/notifications" style={{padding:"8px 4px",background:"rgba(37,211,102,0.1)",border:"1px solid rgba(37,211,102,0.3)",borderRadius:"8px",color:"#25d366",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>💬 WhatsApp</Link>
+
         </div>
       </nav>
 
