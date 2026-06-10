@@ -15,6 +15,7 @@ import StudentCharts from "./pages/StudentCharts";
 import AnnualReport from "./pages/AnnualReport";
 import FeeTracking from "./pages/FeeTracking";
 import Attendance from "./pages/Attendance";
+import Notifications from "./pages/Notifications";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/annual/:id" element={<ProtectedRoute><AnnualReport /></ProtectedRoute>} />
           <Route path="/fees" element={<ProtectedRoute><FeeTracking /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
