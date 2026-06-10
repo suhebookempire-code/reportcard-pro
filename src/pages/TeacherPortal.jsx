@@ -94,7 +94,7 @@ export default function TeacherPortal() {
           <div>
             <label style={{display:"block",fontSize:"11px",color:"#94a3b8",marginBottom:"4px"}}>Year / Annee</label>
             <select value={year} onChange={e=>{setYear(e.target.value);setMark("");}} style={{width:"100%",padding:"8px",background:"#1e293b",border:"1px solid #334155",borderRadius:"8px",color:"#fff",fontSize:"12px",outline:"none"}}>
-              {["2024/2025","2025/2026","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
+              {["2024/2025","2025/2026","2025/2026","2027/2028"].map(y=><option key={y}>{y}</option>)}
             </select>
           </div>
           <div>
