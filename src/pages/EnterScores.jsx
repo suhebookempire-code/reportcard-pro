@@ -8,7 +8,7 @@ export default function EnterScores() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [sequence, setSequence] = useState("Sequence 1");
-  const [year, setYear] = useState("2026/2027");
+  const [year, setYear] = useState("2025/2026");
   const [scores, setScores] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

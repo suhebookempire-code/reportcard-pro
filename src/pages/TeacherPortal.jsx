@@ -10,7 +10,7 @@ export default function TeacherPortal() {
   const [students, setStudents] = useState([]);
   const [idx, setIdx] = useState(0);
   const [sequence, setSequence] = useState("Sequence 1");
-  const [year, setYear] = useState("2026/2027");
+  const [year, setYear] = useState("2025/2026");
   const [mark, setMark] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
