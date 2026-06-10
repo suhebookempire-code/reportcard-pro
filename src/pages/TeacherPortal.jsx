@@ -29,7 +29,7 @@ export default function TeacherPortal() {
         const all = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const eligible = all.filter(s => {
           const subjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
-          return subjs.includes(t.subject);
+          return subjs.some(sub => sub.includes(t.subject) || t.subject.includes(sub.split("/")[0].trim()));
         }).sort((a, b) => a.name.localeCompare(b.name));
         setStudents(eligible);
       } catch(e) { setError("Error loading. Try again."); }
