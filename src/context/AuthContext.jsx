@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
         if (code) {
           const q = query(collection(db, "schools"), where("code", "==", code));
           const snap = await getDocs(q);
-          if (!snap.empty) setSchool({ id: snap.docs[0].id, ...snap.docs[0].data() });
+          if (!snap.empty) { const d = snap.docs[0]; sessionStorage.setItem("schoolName", d.data().name || ""); setSchool({ id: d.id, ...d.data() }); }
         }
       } else {
         setUser(null);
