@@ -9,7 +9,7 @@ export default function AnnualReport() {
   const [student, setStudent] = useState(null);
   const [allScores, setAllScores] = useState({});
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState("2025/2026");
+  const [year, setYear] = useState("2026/2027");
   const [logo, setLogo] = useState(null);
   const [decision, setDecision] = useState("PROMOTED");
   const [classMaster, setClassMaster] = useState("");
@@ -72,7 +72,7 @@ export default function AnnualReport() {
         <Link to="/" style={{color:"#94a3b8",fontSize:"13px",textDecoration:"none"}}>Back</Link>
         <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
           <select value={year} onChange={e=>setYear(e.target.value)} style={{padding:"6px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"11px"}}>
-            {["2024/2025","2025/2026","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
+            {["2024/2025","2026/2027","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
           </select>
           <button onClick={()=>window.print()} style={{padding:"6px 14px",background:"#eab308",border:"none",borderRadius:"6px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>Print</button>
         </div>

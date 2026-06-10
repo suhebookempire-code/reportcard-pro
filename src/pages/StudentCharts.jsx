@@ -10,7 +10,7 @@ export default function StudentCharts() {
   const [student, setStudent] = useState(null);
   const [allScores, setAllScores] = useState({});
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState("2025/2026");
+  const [year, setYear] = useState("2026/2027");
 
   useEffect(() => {
     const load = async () => {

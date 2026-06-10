@@ -8,7 +8,7 @@ export default function EnterScores() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [sequence, setSequence] = useState("Sequence 1");
-  const [year, setYear] = useState("2025/2026");
+  const [year, setYear] = useState("2026/2027");
   const [scores, setScores] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -72,7 +72,7 @@ export default function EnterScores() {
           <div>
             <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Academic Year</label>
             <select value={year} onChange={e=>setYear(e.target.value)} style={{width:"100%",padding:"10px",background:"#1e293b",border:"1px solid #334155",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
-              {["2024/2025","2025/2026","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
+              {["2024/2025","2026/2027","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
             </select>
           </div>
           <div>

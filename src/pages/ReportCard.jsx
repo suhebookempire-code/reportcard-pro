@@ -11,7 +11,7 @@ export default function ReportCard() {
   const [teachers, setTeachers] = useState({});
   const [coefs, setCoefs] = useState({});
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState("2025/2026");
+  const [year, setYear] = useState("2026/2027");
   const [term, setTerm] = useState("Third Term / Troisieme Trimestre");
   const [logo, setLogo] = useState(null);
   const [header, setHeader] = useState({
@@ -178,7 +178,7 @@ export default function ReportCard() {
             {Object.keys(TERMS).map(t=><option key={t}>{t}</option>)}
           </select>
           <select value={year} onChange={e=>setYear(e.target.value)} style={{padding:"6px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"11px"}}>
-            {["2024/2025","2025/2026","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
+            {["2024/2025","2026/2027","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
           </select>
           <button onClick={saveMeta} style={{padding:"6px 14px",background:saved?"#10b981":"#3b82f6",border:"none",borderRadius:"6px",color:"#fff",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>{saving?"Saving...":saved?"✅ Saved!":"💾 Save"}</button>
           <button onClick={()=>window.print()} style={{padding:"6px 14px",background:"#eab308",border:"none",borderRadius:"6px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>🖨️ Print</button>
