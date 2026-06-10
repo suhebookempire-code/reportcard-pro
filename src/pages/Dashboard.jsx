@@ -78,6 +78,7 @@ export default function Dashboard() {
         </div>
         <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginTop:"8px"}}>
           <Link to="/add-student" style={{padding:"6px 12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",textDecoration:"none"}}>+ Student</Link>
+          <Link to="/attendance" style={{padding:"6px 12px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none"}}>📅 Attendance</Link>
           <Link to="/fees" style={{padding:"6px 12px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#34d399",fontSize:"12px",textDecoration:"none"}}>💰 Fees</Link>
           <Link to="/classes" style={{padding:"6px 12px",background:"rgba(139,92,246,0.1)",border:"1px solid rgba(139,92,246,0.3)",borderRadius:"8px",color:"#a78bfa",fontSize:"12px",textDecoration:"none"}}>Classes</Link>
           <Link to="/teachers" style={{padding:"6px 12px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none"}}>Teachers</Link>
