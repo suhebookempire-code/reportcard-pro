@@ -71,7 +71,7 @@ export default function Dashboard() {
           <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
             <div style={{width:"36px",height:"36px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#0a0f1e",fontSize:"14px"}}>RC</div>
             <div>
-              <div style={{fontSize:"13px",fontWeight:"bold",color:"#fff"}}>{school?.name || "ReportCard Pro"}</div>
+              <div style={{fontSize:"13px",fontWeight:"bold",color:"#fff"}}>{school?.name || sessionStorage.getItem("schoolName") || "ReportCard Pro"}</div>
             </div>
           </div>
           <button onClick={handleLogout} style={{padding:"6px 14px",background:"rgba(239,68,68,0.2)",border:"1px solid rgba(239,68,68,0.5)",borderRadius:"8px",color:"#ff6b6b",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>Logout</button>
