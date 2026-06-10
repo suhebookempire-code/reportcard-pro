@@ -87,10 +87,10 @@ export default function Dashboard() {
       <div style={{maxWidth:"1000px",margin:"0 auto",padding:"16px"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px",marginBottom:"12px"}}>
           <Link to="/fees" style={{padding:"10px 4px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#34d399",fontSize:"12px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>💰 Fees</Link>
-          <Link to="/attendance" style={{padding:"10px 4px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>📅 Attendance</Link>
+          <Link to="/attendance" style={{padding:"10px 4px",background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"12px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>📅 Attend</Link>
           <Link to="/notifications" style={{padding:"10px 4px",background:"rgba(37,211,102,0.1)",border:"1px solid rgba(37,211,102,0.3)",borderRadius:"8px",color:"#25d366",fontSize:"12px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>💬 WhatsApp</Link>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginBottom:"16px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginBottom:"12px"}}>
           {[
             {label:"Students",value:students.length,color:"#eab308"},
             {label:"Grammar",value:students.filter(s=>s.section==="Grammar").length,color:"#3b82f6"},
@@ -152,3 +152,4 @@ export default function Dashboard() {
     </div>
   );
 }
+// v1781131907
