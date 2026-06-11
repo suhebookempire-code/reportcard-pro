@@ -1,4 +1,4 @@
-content = '''import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { collection, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
