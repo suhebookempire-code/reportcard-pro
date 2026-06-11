@@ -35,6 +35,21 @@ export default function Dashboard() {
     if (!code && !user) { navigate("/login"); }
   }, [user]);
 
+  useEffect(() => {
+    const checkActive = async () => {
+      const code = sessionStorage.getItem("schoolCode");
+      if (!code) return;
+      const { collection, getDocs, query, where } = await import("firebase/firestore");
+      const q = query(collection(db, "schools"), where("code", "==", code));
+      const snap = await getDocs(q);
+      if (!snap.empty && !snap.docs[0].data().active) {
+        sessionStorage.clear();
+        navigate("/school/" + code);
+      }
+    };
+    checkActive();
+  }, []);
+
   const schoolCode = school?.code || sessionStorage.getItem("schoolCode") || "";
   const handleLogout = async () => { await logout(); navigate("/school/" + schoolCode); };
 
