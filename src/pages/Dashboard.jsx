@@ -115,6 +115,3 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}'''
-open('src/pages/Dashboard.jsx','w').write(content)
-print("done")
