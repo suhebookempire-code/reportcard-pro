@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/config";
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, serverTimestamp } from "firebase/firestore";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LEVELS } from "../utils/grading";
 
@@ -122,6 +122,7 @@ export default function Classes() {
                     {copied===cls.token?"Copied!":"Copy Link"}
                   </button>
                   <button onClick={()=>{const url=BASE_URL+"/class/"+cls.token;if(navigator.share){navigator.share({title:cls.name+" — Class Portal",text:"Access class portal",url:url});}else{navigator.clipboard.writeText(url);}}} style={{padding:"6px 12px",background:"rgba(99,102,241,0.15)",border:"1px solid rgba(99,102,241,0.4)",borderRadius:"8px",color:"#a5b4fc",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>📤 Share</button>
+                  <Link to={"/class/"+cls.token} style={{padding:"6px 12px",background:"rgba(16,185,129,0.15)",border:"1px solid rgba(16,185,129,0.4)",borderRadius:"8px",color:"#34d399",fontSize:"12px",textDecoration:"none",fontWeight:"bold"}}>👥 Students</Link>
                   <button onClick={()=>deleteClass(cls.id,cls.name)} disabled={deleting===cls.id} style={{padding:"6px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>
                     {deleting===cls.id?"...":"Delete"}
                   </button>
