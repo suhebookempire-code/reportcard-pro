@@ -16,6 +16,8 @@ export default function TeacherPortal() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [classes, setClasses] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -32,6 +34,8 @@ export default function TeacherPortal() {
           return subjs.some(sub => sub.includes(t.subject) || t.subject.includes(sub.split("/")[0].trim()));
         }).sort((a, b) => a.name.localeCompare(b.name));
         setStudents(eligible);
+        const cls = [...new Set(eligible.map(s => s.classSection))].filter(Boolean).sort();
+        setClasses(cls);
       } catch(e) { setError("Error loading. Try again."); }
       setLoading(false);
     };
@@ -40,8 +44,9 @@ export default function TeacherPortal() {
 
   useEffect(() => {
     const loadMark = async () => {
-      if (!teacher || students.length === 0) return;
-      const student = students[idx];
+      if (!teacher || classStudents.length === 0) return;
+      const classStudents = students.filter(s => s.classSection === selectedClass);
+  const student = classStudents[idx];
       const key = year.replace(/[/]/g, "-") + "_" + sequence.replace(/ /g, "_");
       const snap = await getDoc(doc(db, "scores", student.id + "_" + key));
       const scores = snap.exists() ? snap.data().scores || {} : {};
@@ -51,9 +56,10 @@ export default function TeacherPortal() {
   }, [teacher, students, idx, sequence, year]);
 
   const saveMark = async () => {
-    if (!teacher || students.length === 0 || mark === "") return false;
+    if (!teacher || classStudents.length === 0 || mark === "") return false;
     setSaving(true);
-    const student = students[idx];
+    const classStudents = students.filter(s => s.classSection === selectedClass);
+  const student = classStudents[idx];
     const key = year.replace(/[/]/g, "-") + "_" + sequence.replace(/ /g, "_");
     const ref = doc(db, "scores", student.id + "_" + key);
     const snap = await getDoc(ref);
@@ -78,7 +84,8 @@ export default function TeacherPortal() {
   if (loading) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#94a3b8",fontSize:"16px"}}>Loading...</div>;
   if (error) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#ef4444",padding:"20px",textAlign:"center",fontSize:"15px"}}>{error}</div>;
 
-  const student = students[idx];
+  const classStudents = students.filter(s => s.classSection === selectedClass);
+  const student = classStudents[idx];
   const g = getGrade(mark);
 
   return (
@@ -105,14 +112,14 @@ export default function TeacherPortal() {
           </div>
         </div>
 
-        {students.length === 0 ? (
+        {classStudents.length === 0 ? (
           <div style={{textAlign:"center",padding:"40px",color:"#475569",background:"rgba(255,255,255,0.02)",borderRadius:"12px"}}>
             No students found for your subject.<br/>Aucun eleve pour cette matiere.
           </div>
         ) : (
           <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"20px"}}>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}>
-              <span style={{fontSize:"12px",color:"#eab308",fontWeight:"bold"}}>{idx + 1} / {students.length} students</span>
+              <span style={{fontSize:"12px",color:"#eab308",fontWeight:"bold"}}>{idx + 1} / {classStudents.length} students</span>
               <span style={{fontSize:"11px",color:"#64748b"}}>{sequence}</span>
             </div>
 
