@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useParams, Link } from "react-router-dom";
 import { SPECIALTIES, GENERAL_SUBJECTS, SEQUENCES, TERMS, getGrade } from "../utils/grading";
 
@@ -44,6 +44,14 @@ export default function ReportCard() {
         if (logoSnap.exists()) setLogo(logoSnap.data().logo);
         const infoSnap2 = await getDoc(doc(db, "schoolInfo", s.schoolName || "default"));
         if (infoSnap2.exists()) setHeader(prev => ({...prev, ...infoSnap2.data()}));
+        const schoolCode = sessionStorage.getItem("schoolCode");
+        if (schoolCode) {
+          const sq = await getDocs(query(collection(db, "schools"), where("code", "==", schoolCode)));
+          if (!sq.empty) {
+            const sd = sq.docs[0].data();
+            setHeader(prev => ({...prev, tel: sd.phone || prev.tel, name: sd.name || prev.name}));
+          }
+        }
         const infoSnap = await getDoc(doc(db, "reportMeta", id));
         if (infoSnap.exists()) {
           const d = infoSnap.data();
