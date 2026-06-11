@@ -26,6 +26,14 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  if (import.meta.env.VITE_MAINTENANCE === 'true') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
+        <h1>🔧 Under Maintenance</h1>
+        <p>We'll be back shortly. Thank you for your patience.</p>
+      </div>
+    );
+  }
   return (
     <AuthProvider>
       <BrowserRouter>
