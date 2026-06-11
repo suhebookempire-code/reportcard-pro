@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+content = '''import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { collection, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
@@ -115,4 +115,6 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+}'''
+open('src/pages/Dashboard.jsx','w').write(content)
+print("done")
