@@ -65,7 +65,11 @@ export default function ReportCard() {
         if (sc.exists()) {
           sd[seq] = sc.data().scores || {};
           if (sc.data().teacherName && sc.data().subject) {
-            autoTeachers[sc.data().subject] = sc.data().teacherName.split(" ")[0];
+            const subjData = sc.data().subject;
+            const allSubjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
+            const matchedSubj = allSubjs.find(full => full.includes(subjData) || subjData.includes(full.split("/")[0].trim()));
+            const finalKey = matchedSubj || subjData;
+            autoTeachers[finalKey] = sc.data().teacherName.split(" ")[0];
           }
         }
       }
