@@ -2,76 +2,75 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { doc, getDoc, setDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useParams, Link } from "react-router-dom";
-import { SPECIALTIES, GENERAL_SUBJECTS, SEQUENCES, TERMS, getGrade } from "../utils/grading";
+import { SPECIALTIES, GENERAL_SUBJECTS, SEQUENCES, TERMS, ACADEMIC_YEARS, getGrade } from "../utils/grading";
 
 export default function ReportCard() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [allScores, setAllScores] = useState({});
   const [teachers, setTeachers] = useState({});
+  const [autoTeachers, setAutoTeachers] = useState({});
   const [coefs, setCoefs] = useState({});
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState("2026/2027");
-  const [term, setTerm] = useState("Third Term / Troisieme Trimestre");
+  const [term, setTerm] = useState("First Term / Premier Trimestre");
   const [logo, setLogo] = useState(null);
-  const [header, setHeader] = useState({
-    subtitle: "GENERAL, COMMERCIAL & TECHNICAL EDUCATION",
-    tel: "", motto: "EMPOWERED TO SERVE"
-  });
-
-  const saveHeader = async (field, value) => {
-    const newHeader = {...header, [field]: value};
-    setHeader(newHeader);
-    await setDoc(doc(db, "schoolInfo", student?.schoolName || "default"), newHeader, {merge: true});
-  };
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [classSize, setClassSize] = useState("");
   const [position, setPosition] = useState("");
   const [classAvg, setClassAvg] = useState("");
   const [decision, setDecision] = useState("PROMOTED");
   const [classMaster, setClassMaster] = useState("");
   const [principal, setPrincipal] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [header, setHeader] = useState({ subtitle: "GENERAL, COMMERCIAL & TECHNICAL EDUCATION", tel: "", motto: "Excellence Through Hard Work" });
+
+  const saveHeader = async (field, val) => {
+    setHeader(prev => ({ ...prev, [field]: val }));
+  };
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
       const snap = await getDoc(doc(db, "students", id));
-      if (snap.exists()) {
-        const s = { id: snap.id, ...snap.data() };
-        setStudent(s);
-        const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName || "default"));
+      if (!snap.exists()) { setLoading(false); return; }
+      const s = { id: snap.id, ...snap.data() };
+      setStudent(s);
+      if (s.schoolName) {
+        const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName));
         if (logoSnap.exists()) setLogo(logoSnap.data().logo);
-        const infoSnap2 = await getDoc(doc(db, "schoolInfo", s.schoolName || "default"));
-        if (infoSnap2.exists()) setHeader(prev => ({...prev, ...infoSnap2.data()}));
-        const schoolCode = sessionStorage.getItem("schoolCode");
-        if (schoolCode) {
-          const sq = await getDocs(query(collection(db, "schools"), where("code", "==", schoolCode)));
-          if (!sq.empty) {
-            const sd = sq.docs[0].data();
-            setHeader(prev => ({...prev, tel: sd.phone || prev.tel, name: sd.name || prev.name}));
-          }
+        const sq = query(collection(db, "schools"), where("name", "==", s.schoolName));
+        const sqSnap = await getDocs(sq);
+        if (!sqSnap.empty) {
+          const sd = sqSnap.docs[0].data();
+          setHeader(prev => ({ ...prev, tel: sd.phone || prev.tel, name: sd.name || prev.name }));
         }
-        const infoSnap = await getDoc(doc(db, "reportMeta", id));
-        if (infoSnap.exists()) {
-          const d = infoSnap.data();
-          setTeachers(d.teachers || {});
-          setCoefs(d.coefs || {});
-          setClassSize(d.classSize || "");
-          setPosition(d.position || "");
-          setClassAvg(d.classAvg || "");
-          setDecision(d.decision || "PROMOTED");
-          setClassMaster(d.classMaster || "");
-          setPrincipal(d.principal || "");
-        }
+      }
+      const infoSnap = await getDoc(doc(db, "reportMeta", id));
+      if (infoSnap.exists()) {
+        const d = infoSnap.data();
+        setTeachers(d.teachers || {});
+        setCoefs(d.coefs || {});
+        setClassSize(d.classSize || "");
+        setPosition(d.position || "");
+        setClassAvg(d.classAvg || "");
+        setDecision(d.decision || "PROMOTED");
+        setClassMaster(d.classMaster || "");
+        setPrincipal(d.principal || "");
       }
       const sd = {};
+      const autoTeachers = {};
       for (const seq of SEQUENCES) {
         const key = year.replace(/[/]/g, "-") + "_" + seq.replace(/ /g, "_");
-        const s = await getDoc(doc(db, "scores", id + "_" + key));
-        if (s.exists()) sd[seq] = s.data().scores || {};
+        const sc = await getDoc(doc(db, "scores", id + "_" + key));
+        if (sc.exists()) {
+          sd[seq] = sc.data().scores || {};
+          if (sc.data().teacherName && sc.data().subject) {
+            autoTeachers[sc.data().subject] = sc.data().teacherName.split(" ")[0];
+          }
+        }
       }
       setAllScores(sd);
+      setTeachers(prev => ({ ...autoTeachers, ...prev }));
       setLoading(false);
     };
     load();
@@ -165,9 +164,7 @@ export default function ReportCard() {
                 </td>
                 <td style={cell}>{total||"-"}</td>
                 <td style={{...cell,fontSize:"8px",color:grade.color}}>{avg?grade.remark:"-"}</td>
-                <td style={cell}>
-                  <input value={teachers[subj]||""} onChange={e=>setTeachers(t=>({...t,[subj]:e.target.value}))} style={{...inp,width:"60px",fontSize:"8px"}} placeholder="Name" />
-                </td>
+                <td style={{...cell,fontSize:"8px"}}>{teachers[subj] || autoTeachers[subj] || "—"}</td>
               </tr>
             );
           })}
@@ -178,7 +175,24 @@ export default function ReportCard() {
 
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e"}}>
-      <style>{`@media print{.no-print{display:none!important} body{background:#fff}}`}</style>
+      <style>{`
+        @media print {
+          .no-print { display:none!important; }
+          body { background:#fff!important; margin:0; padding:0; }
+          @page {
+            size: A4 portrait;
+            margin: 8mm 6mm 8mm 6mm;
+          }
+          html, body { width: 210mm; }
+          #root { background: #fff!important; }
+          * { -webkit-print-color-adjust: exact!important; print-color-adjust: exact!important; color-adjust: exact!important; }
+          table { page-break-inside: avoid; }
+          .report-wrapper { max-width: 100%!important; padding: 0!important; margin: 0!important; }
+        }
+        @media screen {
+          .report-wrapper { max-width: 900px; margin: 0 auto; padding: 8px; background: #fff; color: #000; }
+        }
+      `}</style>
       <div className="no-print" style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"}}>
         <Link to="/" style={{color:"#94a3b8",fontSize:"13px",textDecoration:"none"}}>← Back</Link>
         <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap"}}>
@@ -186,14 +200,14 @@ export default function ReportCard() {
             {Object.keys(TERMS).map(t=><option key={t}>{t}</option>)}
           </select>
           <select value={year} onChange={e=>setYear(e.target.value)} style={{padding:"6px",background:"#1e293b",border:"1px solid #334155",borderRadius:"6px",color:"#fff",fontSize:"11px"}}>
-            {["2024/2025","2026/2027","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
+            {ACADEMIC_YEARS.map(y=><option key={y}>{y}</option>)}
           </select>
           <button onClick={saveMeta} style={{padding:"6px 14px",background:saved?"#10b981":"#3b82f6",border:"none",borderRadius:"6px",color:"#fff",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>{saving?"Saving...":saved?"✅ Saved!":"💾 Save"}</button>
           <button onClick={()=>window.print()} style={{padding:"6px 14px",background:"#eab308",border:"none",borderRadius:"6px",color:"#0a0f1e",fontWeight:"bold",fontSize:"12px",cursor:"pointer"}}>🖨️ Print</button>
         </div>
       </div>
 
-      <div style={{maxWidth:"900px",margin:"0 auto",padding:"8px",background:"#fff",color:"#000"}}>
+      <div className="report-wrapper" style={{background:"#fff",color:"#000"}}>
         <div style={{border:"2px solid #1e3a5f",marginBottom:"6px"}}>
           <div style={{display:"flex",alignItems:"center",padding:"8px",borderBottom:"2px solid #1e3a5f"}}>
             <div style={{marginRight:"10px"}}>
@@ -206,7 +220,7 @@ export default function ReportCard() {
               {logo && <label className="no-print" style={{display:"block",textAlign:"center",cursor:"pointer",fontSize:"8px",color:"#3b82f6",marginTop:"2px"}}>✏️ Change<input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:"none"}} /></label>}
             </div>
             <div style={{flex:1,textAlign:"center"}}>
-              <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("name",e.target.innerText)} style={{fontSize:"15px",fontWeight:"bold",color:"#1e3a5f",textTransform:"uppercase",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{(student.schoolName||"SCHOOL NAME").toUpperCase()}</div>
+              <div style={{fontSize:"15px",fontWeight:"bold",color:"#1e3a5f",textTransform:"uppercase"}}>{(student.schoolName||header.name||"SCHOOL NAME").toUpperCase()}</div>
               <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("subtitle",e.target.innerText)} style={{fontSize:"10px",color:"#475569",margin:"2px 0",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{header.subtitle}</div>
               <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("tel",e.target.innerText)} style={{fontSize:"10px",color:"#475569",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{header.tel||"Tel: _________ | Email: _________ | North West Region, Cameroon"}</div>
               <div contentEditable suppressContentEditableWarning onBlur={e=>saveHeader("motto",e.target.innerText)} style={{fontSize:"10px",color:"#1e3a5f",fontWeight:"bold",marginTop:"2px",outline:"none",borderBottom:"1px dashed #cbd5e1"}}>{header.motto}</div>
