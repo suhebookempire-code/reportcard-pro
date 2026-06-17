@@ -11,11 +11,13 @@ import Teachers from "./pages/Teachers";
 import Classes from "./pages/Classes";
 import ClassList from "./pages/ClassList";
 import SchoolEntry from "./pages/SchoolEntry";
+import Debug from "./pages/Debug";
 import StudentCharts from "./pages/StudentCharts";
 import AnnualReport from "./pages/AnnualReport";
 import FeeTracking from "./pages/FeeTracking";
 import Attendance from "./pages/Attendance";
 import Notifications from "./pages/Notifications";
+import ExamFees from "./pages/ExamFees";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -26,14 +28,6 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
-  if (import.meta.env.VITE_MAINTENANCE === 'true') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
-        <h1>🔧 Under Maintenance</h1>
-        <p>We'll be back shortly. Thank you for your patience.</p>
-      </div>
-    );
-  }
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -41,6 +35,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/master" element={<MasterAdmin />} />
           <Route path="/school/:code" element={<SchoolEntry />} />
+          <Route path="/debug/:id" element={<Debug />} />
           <Route path="/teacher/:token" element={<TeacherPortal />} />
           <Route path="/class/:token" element={<ClassList />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -54,11 +49,9 @@ export default function App() {
           <Route path="/fees" element={<ProtectedRoute><FeeTracking /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/exam-fees" element={<ProtectedRoute><ExamFees /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
 }
-// Sat Jun  6 21:29:16 WAT 2026
-// cache-bust Sun Jun  7 00:31:39 WAT 2026
-// cache-bust Wed Jun 10 22:29:35 WAT 2026
