@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { GENERAL_SUBJECTS, SPECIALTIES, SEQUENCES, getGrade } from "../utils/grading";
+import { GENERAL_SUBJECTS, SPECIALTIES, SEQUENCES, ACADEMIC_YEARS, getGrade } from "../utils/grading";
 
 export default function EnterScores() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [sequence, setSequence] = useState("Sequence 1");
-  const [year, setYear] = useState("2026/2027");
+  const currentYear = ACADEMIC_YEARS[ACADEMIC_YEARS.length - 2];
+  const [year, setYear] = useState(currentYear);
   const [scores, setScores] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,7 +45,7 @@ export default function EnterScores() {
     const key = year.replace(/[/]/g, "-") + "_" + sequence.replace(/ /g, "_");
     await setDoc(doc(db, "scores", id + "_" + key), {
       studentId: id, sequence, year, scores, updatedAt: serverTimestamp()
-    });
+    }, { merge: true });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -72,7 +73,7 @@ export default function EnterScores() {
           <div>
             <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Academic Year</label>
             <select value={year} onChange={e=>setYear(e.target.value)} style={{width:"100%",padding:"10px",background:"#1e293b",border:"1px solid #334155",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
-              {["2024/2025","2026/2027","2026/2027","2027/2028"].map(y=><option key={y}>{y}</option>)}
+              {ACADEMIC_YEARS.map(y=><option key={y}>{y}</option>)}
             </select>
           </div>
           <div>
