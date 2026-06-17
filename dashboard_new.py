@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+content = '''import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { collection, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
@@ -35,21 +35,6 @@ export default function Dashboard() {
     if (!code && !user) { navigate("/login"); }
   }, [user]);
 
-  useEffect(() => {
-    const checkActive = async () => {
-      const code = sessionStorage.getItem("schoolCode");
-      if (!code) return;
-      const { collection, getDocs, query, where } = await import("firebase/firestore");
-      const q = query(collection(db, "schools"), where("code", "==", code));
-      const snap = await getDocs(q);
-      if (!snap.empty && !snap.docs[0].data().active) {
-        sessionStorage.clear();
-        navigate("/school/" + code);
-      }
-    };
-    checkActive();
-  }, []);
-
   const schoolCode = school?.code || sessionStorage.getItem("schoolCode") || "";
   const handleLogout = async () => { await logout(); navigate("/school/" + schoolCode); };
 
@@ -78,7 +63,6 @@ export default function Dashboard() {
           <Link to="/teachers" style={{padding:"8px 4px",background:"rgba(59,130,246,0.15)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"11px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>Teachers</Link>
           <Link to="/fees" style={{padding:"8px 4px",background:"rgba(16,185,129,0.15)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#34d399",fontSize:"11px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>Fees</Link>
           <Link to="/attendance" style={{padding:"8px 4px",background:"rgba(59,130,246,0.15)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:"8px",color:"#60a5fa",fontSize:"11px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>Attendance</Link>
-          <Link to="/exam-fees" style={{display:"block",padding:"14px",background:"rgba(99,102,241,0.15)",border:"1px solid rgba(99,102,241,0.3)",borderRadius:"12px",color:"#a5b4fc",textDecoration:"none",textAlign:"center",fontSize:"13px",fontWeight:"bold"}}>🎓 Exam Fees</Link>
           <Link to="/notifications" style={{padding:"8px 4px",background:"rgba(37,211,102,0.15)",border:"1px solid rgba(37,211,102,0.3)",borderRadius:"8px",color:"#25d366",fontSize:"11px",textDecoration:"none",textAlign:"center",fontWeight:"bold"}}>WhatsApp</Link>
           <Link to="/add-student" style={{padding:"8px 4px",background:"linear-gradient(135deg,#eab308,#ca8a04)",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"11px",textDecoration:"none",textAlign:"center"}}>+ Student</Link>
         </div>
@@ -131,4 +115,6 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+}'''
+open('src/pages/Dashboard.jsx','w').write(content)
+print("done")

@@ -69,7 +69,7 @@ export default function AddStudent() {
             </div>
             <div>
               <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Date of Birth</label>
-              <input type="date" value={form.dateOfBirth} onChange={e=>setForm(f=>({...f,dateOfBirth:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}} />
+              <input type="text" placeholder="DD/MM/YYYY" value={form.dateOfBirth} onChange={e=>setForm(f=>({...f,dateOfBirth:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}} />
             </div>
           </div>
           <div style={{marginBottom:"16px"}}>
