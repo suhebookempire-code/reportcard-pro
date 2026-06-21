@@ -32,7 +32,11 @@ export default function TeacherPortal() {
         const all = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const eligible = all.filter(s => {
           const subjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
-          return subjs.some(sub => sub.includes(t.subject) || t.subject.includes(sub.split("/")[0].trim()));
+          const tSubj = t.subject.toLowerCase().trim();
+          return subjs.some(sub => {
+            const parts = sub.toLowerCase().split("/").map(p=>p.trim());
+            return parts.some(p => p.includes(tSubj) || tSubj.includes(p) || sub.toLowerCase().includes(tSubj));
+          });
         }).sort((a, b) => a.name.localeCompare(b.name));
         setStudents(eligible);
         const cls = [...new Set(eligible.map(s => s.classSection))].filter(Boolean).sort();
