@@ -42,7 +42,8 @@ export default function ReportCard() {
         const sqSnap = await getDocs(sq);
         if (!sqSnap.empty) {
           const sd = sqSnap.docs[0].data();
-          setHeader(prev => ({ ...prev, tel: sd.phone || prev.tel, name: sd.name || prev.name }));
+          const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:"", sd.location||"Cameroon"].filter(Boolean).join(" | ");
+          setHeader(prev => ({ ...prev, name: sd.name || prev.name, tel: telLine || prev.tel, location: sd.location || prev.location }));
         }
       }
       const infoSnap = await getDoc(doc(db, "reportMeta", id));
