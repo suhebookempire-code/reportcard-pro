@@ -13,7 +13,8 @@ function generateToken() {
 
 export default function Teachers() {
   const { user, school } = useAuth();
-  const schoolId = sessionStorage.getItem("schoolId") || sessionStorage.getItem("schoolId") || school?.id || user?.uid;
+  const schoolId = sessionStorage.getItem("schoolId") || school?.id || user?.uid;
+  const schoolName = school?.name || sessionStorage.getItem("schoolName") || "";
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -37,7 +38,7 @@ export default function Teachers() {
     if (!form.name || !form.subject) return;
     setSaving(true);
     const token = generateToken();
-    await addDoc(collection(db, "teachers"), { ...form, token, schoolId, schoolName: school?.name || "", createdAt: serverTimestamp() });
+    await addDoc(collection(db, "teachers"), { ...form, token, schoolId, schoolName, createdAt: serverTimestamp() });
     setForm({ name:"", subject:"", phone:"", email:"" });
     setShowAdd(false);
     await fetchTeachers();

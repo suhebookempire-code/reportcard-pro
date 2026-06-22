@@ -9,6 +9,7 @@ export default function AddStudent() {
   const { user, school } = useAuth();
   const navigate = useNavigate();
   const schoolId = sessionStorage.getItem("schoolId") || school?.id || user?.uid;
+  const schoolName = school?.name || sessionStorage.getItem("schoolName") || "";
   const [form, setForm] = useState({ name:"", level:"Form 1", classSection:"", admissionNumber:"", gender:"Male", dateOfBirth:"", section:"Grammar", specialty:"" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -17,7 +18,7 @@ export default function AddStudent() {
     if (!form.name || !form.classSection) { setError("Name and Class Section are required."); return; }
     setLoading(true);
     try {
-      await addDoc(collection(db, "students"), { ...form, schoolId, schoolName: school?.name || "", createdAt: serverTimestamp() });
+      await addDoc(collection(db, "students"), { ...form, schoolId, schoolName, createdAt: serverTimestamp() });
       navigate("/");
     } catch(err) { setError("Failed to add student."); }
     setLoading(false);
