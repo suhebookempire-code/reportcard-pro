@@ -38,7 +38,9 @@ export default function ReportCard() {
       if (s.schoolName) {
         const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName));
         if (logoSnap.exists()) setLogo(logoSnap.data().logo);
-        const sq = query(collection(db, "schools"), where("name", "==", s.schoolName));
+        const allSchools = await getDocs(collection(db, "schools"));
+        const matchSchool = allSchools.docs.map(d=>({id:d.id,...d.data()})).find(sc=>sc.name===s.schoolName||sc.id===s.schoolId);
+        const sq = { docs: matchSchool ? [{data:()=>matchSchool}] : [] }; const sqSnap = sq;
         const sqSnap = await getDocs(sq);
         if (!sqSnap.empty) {
           const sd = sqSnap.docs[0].data();
