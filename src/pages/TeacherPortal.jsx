@@ -28,10 +28,13 @@ export default function TeacherPortal() {
         if (snap.empty) { setError("Invalid teacher link. Contact your administrator."); setLoading(false); return; }
         const t = { id: snap.docs[0].id, ...snap.docs[0].data() };
         setTeacher(t);
-        let sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", t.schoolId)));
-        if (sSnap.empty && t.schoolName) {
-          sSnap = await getDocs(query(collection(db, "students"), where("schoolName", "==", t.schoolName)));
-        }
+        const schoolSnap = await getDocs(collection(db, "schools"));
+        const allSchools = schoolSnap.docs.map(d=>({id:d.id,...d.data()}));
+        const matchedSchool = allSchools.find(s=>s.id===t.schoolId || s.name===t.schoolName);
+        const fetchId = matchedSchool?.id || t.schoolId;
+        const fetchName = matchedSchool?.name || t.schoolName;
+        let sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", fetchId)));
+        if (sSnap.empty) sSnap = await getDocs(query(collection(db, "students"), where("schoolName", "==", fetchName)));
         const all = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const eligible = all.filter(s => {
           const subjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
