@@ -28,7 +28,10 @@ export default function TeacherPortal() {
         if (snap.empty) { setError("Invalid teacher link. Contact your administrator."); setLoading(false); return; }
         const t = { id: snap.docs[0].id, ...snap.docs[0].data() };
         setTeacher(t);
-        const sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", t.schoolId)));
+        let sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", t.schoolId)));
+        if (sSnap.empty && t.schoolName) {
+          sSnap = await getDocs(query(collection(db, "students"), where("schoolName", "==", t.schoolName)));
+        }
         const all = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const eligible = all.filter(s => {
           const subjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
