@@ -81,6 +81,7 @@ export default function ReportCard() {
         }
       }
       setAllScores(sd);
+      setAutoTeachers(autoTeachers);
       setTeachers(prev => {
         const merged = { ...autoTeachers };
         for (const k in prev) { if (prev[k]) merged[k] = prev[k]; }
