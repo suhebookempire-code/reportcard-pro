@@ -26,6 +26,14 @@ export default function Debug() {
       text += "\nALL SCHOOLS (" + allSchools.size + "):\n";
       allSchools.forEach(d => { text += JSON.stringify(d.data(), null, 2) + "\n"; });
 
+      const allTeachers = await getDocs(collection(db, "teachers"));
+      text += "\nALL TEACHERS (" + allTeachers.size + "):\n";
+      allTeachers.forEach(d => { text += JSON.stringify({id:d.id,...d.data()}, null, 2) + "\n"; });
+
+      const allStudents = await getDocs(collection(db, "students"));
+      text += "\nALL STUDENTS (" + allStudents.size + "):\n";
+      allStudents.forEach(d => { text += "schoolId=" + d.data().schoolId + " name=" + d.data().name + "\n"; });
+
       const seqKey = "2026-2027_Sequence_1";
       const scoreDoc = await getDoc(doc(db, "scores", id + "_" + seqKey));
       text += "\nSCORE DOC (" + id + "_" + seqKey + "): exists=" + scoreDoc.exists() + "\n";
