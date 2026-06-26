@@ -35,17 +35,15 @@ export default function ReportCard() {
       if (!snap.exists()) { setLoading(false); return; }
       const s = { id: snap.id, ...snap.data() };
       setStudent(s);
-      if (s.schoolName) {
-        const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName));
+      const allSchools = await getDocs(collection(db, "schools"));
+      const allSchoolDocs = allSchools.docs.map(d=>({id:d.id,...d.data()}));
+      const matchSchool = allSchoolDocs.find(sc=>sc.id===s.schoolId||sc.name===s.schoolName);
+      if (matchSchool) {
+        const sd = matchSchool;
+        const logoSnap = await getDoc(doc(db, "schoolLogos", sd.name||"default"));
         if (logoSnap.exists()) setLogo(logoSnap.data().logo);
-        const allSchools = await getDocs(collection(db, "schools"));
-        const allSchoolDocs = allSchools.docs.map(d=>({id:d.id,...d.data()}));
-        const matchSchool = allSchoolDocs.find(sc=>sc.name===s.schoolName||sc.id===s.schoolId);
-        if (matchSchool) {
-          const sd = matchSchool;
-          const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:"", sd.location||"Cameroon"].filter(Boolean).join(" | ");
-          setHeader(prev => ({ ...prev, name: sd.name || prev.name, tel: telLine || prev.tel, location: sd.location || prev.location }));
-        }
+        const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:""].filter(Boolean).join(" | ");
+        setHeader(prev => ({ ...prev, name: sd.name?.trim()||prev.name, tel: telLine||prev.tel }));
       }
       const infoSnap = await getDoc(doc(db, "reportMeta", id));
       if (infoSnap.exists()) {
