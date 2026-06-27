@@ -64,10 +64,10 @@ export default function TeacherPortal() {
   }, [teacher, students, idx, sequence, year]);
 
   const saveMark = async () => {
-    if (!teacher || classStudents.length === 0 || mark === "") return false;
-    setSaving(true);
     const classStudents = students.filter(s => s.classSection === selectedClass);
-  const student = classStudents[idx];
+    const student = classStudents[idx];
+    if (!teacher || classStudents.length === 0 || mark === "" || !student) return false;
+    setSaving(true);
     const key = year.replace(/[/]/g, "-") + "_" + sequence.replace(/ /g, "_");
     const ref = doc(db, "scores", student.id + "_" + key);
     const snap = await getDoc(ref);
