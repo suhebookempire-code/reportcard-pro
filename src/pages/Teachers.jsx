@@ -18,14 +18,18 @@ export default function Teachers() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name:"", subject:"", phone:"", email:"" });
+  const [form, setForm] = useState({ name:"", subject:"", phone:"", email:"", assignedClasses:[] });
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState("");
   const [deleting, setDeleting] = useState("");
+  const [classes, setClasses] = useState([]);
 
   const allSubjects = [...GENERAL_SUBJECTS, ...Object.values(SPECIALTIES).flat().filter((v,i,a)=>a.indexOf(v)===i)].sort();
 
   const fetchTeachers = async () => {
+    const cq = query(collection(db, "classes"), where("schoolId", "==", schoolId));
+    const cSnap = await getDocs(cq);
+    setClasses(cSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     const q = query(collection(db, "teachers"), where("schoolId", "==", schoolId));
     const snap = await getDocs(q);
     setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -79,10 +83,22 @@ export default function Teachers() {
               <input value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="Phone / Telephone" style={{padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}} />
             </div>
             <input value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="Email (optional)" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"10px"}} />
-            <select value={form.subject} onChange={e=>setForm(f=>({...f,subject:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",marginBottom:"14px"}}>
+            <select value={form.subject} onChange={e=>setForm(f=>({...f,subject:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",marginBottom:"10px"}}>
               <option value="">-- Select Subject / Choisir Matiere --</option>
               {allSubjects.map(s=><option key={s} value={s}>{s}</option>)}
             </select>
+            <div style={{marginBottom:"14px"}}>
+              <div style={{fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Assign Classes (select all that apply):</div>
+              {classes.map(cls=>(
+                <label key={cls.id} style={{display:"flex",alignItems:"center",gap:"8px",padding:"6px",cursor:"pointer",color:"#e2e8f0",fontSize:"13px"}}>
+                  <input type="checkbox" checked={form.assignedClasses.includes(cls.id)} onChange={e=>{
+                    if(e.target.checked) setForm(f=>({...f,assignedClasses:[...f.assignedClasses,cls.id]}));
+                    else setForm(f=>({...f,assignedClasses:f.assignedClasses.filter(id=>id!==cls.id)}));
+                  }} />
+                  {cls.level} - {cls.name}
+                </label>
+              ))}
+            </div>
             <div style={{display:"flex",gap:"8px"}}>
               <button onClick={addTeacher} disabled={saving} style={{padding:"10px 20px",background:"#eab308",border:"none",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"13px",cursor:"pointer"}}>
                 {saving?"Saving...":"Save Teacher"}
