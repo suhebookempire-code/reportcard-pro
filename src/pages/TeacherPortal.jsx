@@ -34,7 +34,7 @@ export default function TeacherPortal() {
         setStudents(eligible);
         const cls = [...new Set(eligible.map(s => s.classSection))].filter(Boolean).sort();
         setClasses(cls);
-      } catch(e) { setError("Error loading. Try again."); }
+      } catch(e) { console.error("TeacherPortal error:", e); setError("Error: " + e.message); }
       setLoading(false);
     };
     load();
