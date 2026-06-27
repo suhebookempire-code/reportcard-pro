@@ -48,11 +48,6 @@ export default function ReportCard() {
         const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:""].filter(Boolean).join(" | ");
         setHeader(prev => ({ ...prev, name: sd.name?.trim()||prev.name, tel: telLine||prev.tel }));
       }
-      const schoolInfoSnap = await getDoc(doc(db, "schoolInfo", s.schoolId || s.schoolName || "default"));
-      if (schoolInfoSnap.exists()) {
-        const si = schoolInfoSnap.data();
-        setHeader(prev => ({ ...prev, ...si }));
-      }
       const infoSnap = await getDoc(doc(db, "reportMeta", id));
       if (infoSnap.exists()) {
         const d = infoSnap.data();
