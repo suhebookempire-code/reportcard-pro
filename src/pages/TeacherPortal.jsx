@@ -30,10 +30,7 @@ export default function TeacherPortal() {
         setTeacher(t);
         let sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", t.schoolId)));
         const all = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const eligible = all.filter(s => {
-          const subjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
-          return subjs.some(sub => sub === t.subject);
-        }).sort((a, b) => a.name.localeCompare(b.name));
+        const eligible = all.sort((a, b) => a.name.localeCompare(b.name));
         setStudents(eligible);
         const cls = [...new Set(eligible.map(s => s.classSection))].filter(Boolean).sort();
         setClasses(cls);
