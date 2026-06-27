@@ -183,8 +183,8 @@ export default function TeacherPortal() {
               )}
             </div>
 
-            <button onClick={saveMark} disabled={saving || mark === ""} style={{width:"100%",padding:"12px",background:saved?"#10b981":"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:saved?"#fff":"#0a0f1e",fontWeight:"bold",fontSize:"14px",cursor:"pointer",marginBottom:"10px",transition:"all 0.3s"}}>
-              {saving ? "Saving... / Enregistrement..." : saved ? "Saved! / Enregistre!" : "Save Mark / Enregistrer la Note"}
+            <button onClick={async()=>{const ok=await saveMark();if(ok&&idx<classStudents.length-1){setTimeout(()=>{setIdx(i=>i+1);setMark("");setSaved(false);},800);}}} disabled={saving||mark===""} style={{width:"100%",padding:"14px",background:saved?"#10b981":"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:saved?"#fff":"#0a0f1e",fontWeight:"bold",fontSize:"15px",cursor:mark===""?"not-allowed":"pointer",marginBottom:"10px",transition:"all 0.3s"}}>
+              {saving?"Saving...":saved?"✅ Saved! Moving to next...":"📝 Register & Save Mark"}
             </button>
 
             <div style={{display:"flex",gap:"8px"}}>
