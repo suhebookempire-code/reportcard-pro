@@ -38,15 +38,15 @@ export default function ReportCard() {
       if (!snap.exists()) { setLoading(false); return; }
       const s = { id: snap.id, ...snap.data() };
       setStudent(s);
-      const allSchools = await getDocs(collection(db, "schools"));
-      const allSchoolDocs = allSchools.docs.map(d=>({id:d.id,...d.data()}));
-      const matchSchool = allSchoolDocs.find(sc=>sc.id===s.schoolId||sc.name===s.schoolName);
-      if (matchSchool) {
-        const sd = matchSchool;
-        const logoSnap = await getDoc(doc(db, "schoolLogos", sd.name||"default"));
-        if (logoSnap.exists()) setLogo(logoSnap.data().logo);
-        const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:""].filter(Boolean).join(" | ");
-        setHeader(prev => ({ ...prev, name: sd.name?.trim()||prev.name, tel: telLine||prev.tel }));
+      if (s.schoolId) {
+        const schoolDoc = await getDoc(doc(db, "schools", s.schoolId));
+        if (schoolDoc.exists()) {
+          const sd = schoolDoc.data();
+          const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolId));
+          if (logoSnap.exists()) setLogo(logoSnap.data().logo);
+          const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:""].filter(Boolean).join(" | ");
+          setHeader(prev => ({ ...prev, name: sd.name?.trim()||prev.name, tel: telLine||prev.tel }));
+        }
       }
       const infoSnap = await getDoc(doc(db, "reportMeta", id));
       if (infoSnap.exists()) {

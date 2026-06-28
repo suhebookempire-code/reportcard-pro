@@ -73,7 +73,9 @@ export default function TeacherPortal() {
     const snap = await getDoc(ref);
     const existing = snap.exists() ? snap.data().scores || {} : {};
     existing[teacher.subject] = mark;
-    await setDoc(ref, { studentId: student.id, sequence, year, scores: existing, teacherName: teacher.name, subject: teacher.subject, updatedAt: serverTimestamp() }, { merge: true });
+    const existingTeacherNames = snap.exists() ? snap.data().teacherNames || {} : {};
+    existingTeacherNames[teacher.subject] = teacher.name.split(" ")[0];
+    await setDoc(ref, { studentId: student.id, sequence, year, scores: existing, teacherName: teacher.name, subject: teacher.subject, teacherNames: existingTeacherNames, updatedAt: serverTimestamp() }, { merge: true });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
