@@ -67,16 +67,11 @@ export default function ReportCard() {
         const sc = await getDoc(doc(db, "scores", id + "_" + key));
         if (sc.exists()) {
           sd[seq] = sc.data().scores || {};
-          if (sc.data().teacherName && sc.data().subject) {
-            const subjData = sc.data().subject;
-            const allSubjs = [...GENERAL_SUBJECTS, ...(SPECIALTIES[s.specialty] || [])];
-            const subjLower = subjData.toLowerCase().trim();
-            const matchedSubj = allSubjs.find(full => {
-              const parts = full.toLowerCase().split("/").map(p=>p.trim());
-              return parts.some(p => p.includes(subjLower) || subjLower.includes(p));
-            });
-            const finalKey = matchedSubj || subjData;
-            autoTeachers[finalKey] = sc.data().teacherName.split(" ")[0];
+          const scData = sc.data();
+          if (scData.teacherNames) {
+            Object.assign(autoTeachers, scData.teacherNames);
+          } else if (scData.teacherName && scData.subject) {
+            autoTeachers[scData.subject] = scData.teacherName.split(" ")[0];
           }
         }
       }
