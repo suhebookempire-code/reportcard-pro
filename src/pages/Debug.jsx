@@ -24,7 +24,7 @@ export default function Debug() {
 
       const allSchools = await getDocs(collection(db, "schools"));
       text += "\nALL SCHOOLS (" + allSchools.size + "):\n";
-      allSchools.forEach(d => { text += JSON.stringify(d.data(), null, 2) + "\n"; });
+      allSchools.forEach(d => { text += "DOC_ID: " + d.id + "\n" + JSON.stringify(d.data(), null, 2) + "\n"; });
 
       const allTeachers = await getDocs(collection(db, "teachers"));
       text += "\nALL TEACHERS (" + allTeachers.size + "):\n";
