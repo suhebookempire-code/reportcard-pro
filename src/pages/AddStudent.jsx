@@ -10,7 +10,7 @@ export default function AddStudent() {
   const navigate = useNavigate();
   const schoolId = sessionStorage.getItem("schoolId") || school?.id || user?.uid;
   const schoolName = school?.name || sessionStorage.getItem("schoolName") || "";
-  const [form, setForm] = useState({ name:"", level:"Form 1", classSection:"", admissionNumber:"", gender:"Male", dateOfBirth:"", section:"Grammar", specialty:"" });
+  const [form, setForm] = useState({ name:"", level:"Form 1", classSection:"", admissionNumber:"", gender:"Male", dateOfBirth:"", section:"Grammar", specialty:"", parentPhone:"", parentName:"" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -81,6 +81,14 @@ export default function AddStudent() {
             </select>
           </div>
           <div style={{display:"flex",gap:"8px"}}>
+            <div style={{marginBottom:"12px",gridColumn:"1/-1"}}>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Parent/Guardian Name</label>
+              <input value={form.parentName} onChange={e=>setForm(f=>({...f,parentName:e.target.value}))} placeholder="e.g. Mr Neba John" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box"}} />
+            </div>
+            <div style={{marginBottom:"12px",gridColumn:"1/-1"}}>
+              <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Parent WhatsApp Number 📱</label>
+              <input value={form.parentPhone} onChange={e=>setForm(f=>({...f,parentPhone:e.target.value}))} placeholder="e.g. 237670000000" style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box"}} />
+            </div>
             <button onClick={handleSubmit} disabled={loading} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:"#0a0f1e",fontWeight:"bold",fontSize:"14px",cursor:"pointer"}}>{loading?"Saving...":"Save Student"}</button>
             <Link to="/" style={{padding:"12px 20px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#94a3b8",fontSize:"13px",textDecoration:"none",display:"flex",alignItems:"center"}}>Cancel</Link>
           </div>
