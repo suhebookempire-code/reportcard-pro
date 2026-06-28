@@ -28,11 +28,28 @@ export default function StudentCharts() {
     };
     load();
   }, [id, year]);
-  const passCount = 0;
-  const failCount = 0;
-  const overallAvg = null;
-  const lineData = [];
-  const barData = [];
+  const subjects = [...GENERAL_SUBJECTS, ...(SPECIALTIES[student?.specialty] || [])];
+  const getScore = (subj, seq) => allScores[seq]?.[subj] ?? null;
+
+  const lineData = SEQUENCES.map(seq => {
+    const vals = subjects.map(s => getScore(s, seq)).filter(v => v !== null);
+    const avg = vals.length ? (vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(1) : null;
+    return { name: seq.replace("Sequence ", "Seq "), avg: avg ? parseFloat(avg) : null };
+  });
+
+  const barData = subjects.slice(0,10).map(subj => {
+    const vals = SEQUENCES.map(s => getScore(subj, s)).filter(v => v !== null);
+    const avg = vals.length ? (vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(1) : null;
+    return { name: subj.split("/")[0].trim().substring(0,12), avg: avg ? parseFloat(avg) : 0 };
+  });
+
+  const passCount = barData.filter(s => s.avg >= 10).length;
+  const failCount = barData.filter(s => s.avg > 0 && s.avg < 10).length;
+  const overallAvg = (() => {
+    const vals = barData.filter(s => s.avg > 0).map(s => s.avg);
+    if (!vals.length) return null;
+    return (vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(2);
+  })();
 
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
