@@ -51,6 +51,9 @@ export default function StudentCharts() {
     return (vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(2);
   })();
 
+  if (loading) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#94a3b8"}}>Loading Charts...</div>;
+  if (!student) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#ef4444"}}>Student not found.</div>;
+
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
       <div style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
