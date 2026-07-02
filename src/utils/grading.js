@@ -88,6 +88,22 @@ export const SPECIALTIES = {
   "Grammar - Commercial": ["Commerce","Accounting","Economics","Business Mathematics","Geography"],
 };
 
+const COMMERCIAL_KEYS = ["Accounting (ACC)","Banking and Insurance (BIN)","Home Economics (HEC)","Marketing (MKTG)","Administrative and Communication Techniques (ACT)","Heating Taxation and Information Management Systems (TIMS)","Digital Professional Reporting (DPR)","Bakery and Pastry (BP)","Hotel Management (HM)","Transport and Logistics Management (TLM)"];
+
+export function getSpecialtiesBySection(section) {
+  const keys = Object.keys(SPECIALTIES);
+  if (section === "Technical") {
+    return keys.filter(k => !k.startsWith("Grammar") && !COMMERCIAL_KEYS.includes(k));
+  }
+  if (section === "Commercial") {
+    return COMMERCIAL_KEYS;
+  }
+  if (section === "Grammar") {
+    return keys.filter(k => k.startsWith("Grammar"));
+  }
+  return keys;
+}
+
 export const SUBJECTS_BY_LEVEL = {
   "Form 1": [...GENERAL_SUBJECTS],
   "Form 2": [...GENERAL_SUBJECTS],

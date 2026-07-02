@@ -3,7 +3,7 @@ import { db } from "../firebase/config";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LEVELS, SPECIALTIES } from "../utils/grading";
+import { LEVELS, SPECIALTIES, getSpecialtiesBySection } from "../utils/grading";
 
 export default function AddStudent() {
   const { user, school } = useAuth();
@@ -64,8 +64,8 @@ export default function AddStudent() {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginBottom:"12px"}}>
             <div>
               <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Section</label>
-              <select value={form.section} onChange={e=>setForm(f=>({...f,section:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
-                <option>Grammar</option><option>Technical</option>
+              <select value={form.section} onChange={e=>setForm(f=>({...f,section:e.target.value,specialty:""}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
+                <option>Grammar</option><option>Technical</option><option>Commercial</option>
               </select>
             </div>
             <div>
@@ -74,10 +74,10 @@ export default function AddStudent() {
             </div>
           </div>
           <div style={{marginBottom:"16px"}}>
-            <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Specialty (Technical only)</label>
+            <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Specialty (Technical/Commercial only)</label>
             <select value={form.specialty} onChange={e=>setForm(f=>({...f,specialty:e.target.value}))} style={{width:"100%",padding:"10px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#fff",fontSize:"13px",outline:"none"}}>
               <option value="">-- Select Specialty --</option>
-              {Object.keys(SPECIALTIES).map(s=><option key={s} value={s}>{s}</option>)}
+              {getSpecialtiesBySection(form.section).map(s=><option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div style={{display:"flex",gap:"8px"}}>
