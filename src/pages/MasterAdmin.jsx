@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
-import { db } from "../firebase/config";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where } from "firebase/firestore";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { db, auth, firebaseConfig } from "../firebase/config";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, serverTimestamp, query, where } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 const MASTER_EMAILS = ["gerald.neba@suebem.com","admin@suebem.com"];
 const APP_URL = typeof window !== "undefined" ? window.location.origin : "";
-const schoolAuth = getAuth();
-
-const MASTER_PASSWORDS = ["Suebem2040","SUEBEMmaster2026"];
+const secondaryApp = initializeApp(firebaseConfig, "SchoolCreation");
+const schoolAuth = getAuth(secondaryApp);
 
 export default function MasterAdmin() {
   const [isAuth, setIsAuth] = useState(false);
+  const [masterEmail, setMasterEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
@@ -52,18 +53,25 @@ export default function MasterAdmin() {
     setTimeout(() => setMsg({text:"",type:"success"}), 4000);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (locked) return;
-    if (MASTER_PASSWORDS.includes(password)) {
-      setIsAuth(true); setError(""); setAttempts(0);
-    } else {
+    try {
+      const cred = await signInWithEmailAndPassword(auth, masterEmail, password);
+      const tokenResult = await cred.user.getIdTokenResult();
+      if (tokenResult.claims.master === true) {
+        setIsAuth(true); setError(""); setAttempts(0);
+      } else {
+        await signOut(auth);
+        throw new Error("not-master");
+      }
+    } catch (e) {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       if (newAttempts >= 3) {
         setLocked(true); setLockTimer(60);
         setError("Too many failed attempts. Locked for 60 seconds.");
       } else {
-        setError("Invalid password. " + (3 - newAttempts) + " attempts remaining.");
+        setError("Invalid credentials. " + (3 - newAttempts) + " attempts remaining.");
       }
       setPassword("");
     }
@@ -82,19 +90,30 @@ export default function MasterAdmin() {
       showMsg("Password must be at least 6 characters.", "error"); return;
     }
     setLoading(true);
+    let adminUid = null;
     try {
-      await createUserWithEmailAndPassword(schoolAuth, newSchool.adminEmail, newSchool.adminPassword);
+      const cred = await createUserWithEmailAndPassword(schoolAuth, newSchool.adminEmail, newSchool.adminPassword);
+      adminUid = cred.user.uid;
     } catch(e) {
       if (e.code !== "auth/email-already-in-use") {
         showMsg("Error creating admin: " + e.message, "error");
         setLoading(false); return;
       }
     }
-    await addDoc(collection(db, "schools"), {
-      ...newSchool, active: true,
+    const { adminPassword, ...schoolData } = newSchool;
+    const schoolRef = await addDoc(collection(db, "schools"), {
+      ...schoolData, active: true,
       createdAt: serverTimestamp(),
       createdBy: "Master Admin"
     });
+    if (adminUid) {
+      await setDoc(doc(db, "users", adminUid), {
+        role: "admin",
+        schoolId: schoolRef.id,
+        email: newSchool.adminEmail,
+        createdAt: serverTimestamp()
+      });
+    }
     showMsg("School registered successfully!");
     setNewSchool({name:"",location:"",phone:"",adminEmail:"",adminPassword:"",code:""});
     setTab("schools");
@@ -175,6 +194,12 @@ export default function MasterAdmin() {
             </div>
           )}
           {error && !locked && <div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"10px",padding:"12px",marginBottom:"16px",color:"#fca5a5",fontSize:"13px"}}>{error}</div>}
+          <input type="email" value={masterEmail}
+            onChange={e=>setMasterEmail(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+            placeholder="Master Email"
+            disabled={locked}
+            style={{...styleInput,marginBottom:"12px",opacity:locked?0.5:1}} />
           <div style={{position:"relative",marginBottom:"20px"}}>
             <input type={showPass?"text":"password"} value={password}
               onChange={e=>setPassword(e.target.value)}
