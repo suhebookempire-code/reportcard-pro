@@ -28,7 +28,7 @@ export default function ReportCard() {
   const saveHeader = async (field, val) => {
     setHeader(prev => ({ ...prev, [field]: val }));
     if (student) {
-      await setDoc(doc(db, "schoolInfo", student.schoolId || student.schoolName || "default"), { [field]: val }, { merge: true });
+      await setDoc(doc(db, "schoolInfo", student.schoolId), { [field]: val, schoolId: student.schoolId }, { merge: true });
     }
   };
 
@@ -94,7 +94,7 @@ export default function ReportCard() {
     reader.onload = async (ev) => {
       const base64 = ev.target.result;
       setLogo(base64);
-      await setDoc(doc(db, "schoolLogos", student.schoolName || "default"), { logo: base64 });
+      await setDoc(doc(db, "schoolLogos", student.schoolId), { logo: base64, schoolId: student.schoolId });
     };
     reader.readAsDataURL(file);
   };
@@ -104,12 +104,12 @@ export default function ReportCard() {
     const newScores = { ...allScores, [seq]: { ...(allScores[seq] || {}), [subj]: val } };
     setAllScores(newScores);
     const key = year.replace(/[/]/g, "-") + "_" + seq.replace(/ /g, "_");
-    await setDoc(doc(db, "scores", id + "_" + key), { studentId: id, sequence: seq, year, scores: newScores[seq] || {} });
+    await setDoc(doc(db, "scores", id + "_" + key), { studentId: id, schoolId: student.schoolId, sequence: seq, year, scores: newScores[seq] || {} });
   };
 
   const saveMeta = async () => {
     setSaving(true);
-    await setDoc(doc(db, "reportMeta", id), { teachers, coefs, classSize, position, classAvg, decision, classMaster, principal });
+    await setDoc(doc(db, "reportMeta", id), { studentId: id, schoolId: student.schoolId, teachers, coefs, classSize, position, classAvg, decision, classMaster, principal });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);

@@ -25,7 +25,7 @@ export default function AnnualReport() {
       if (snap.exists()) {
         const s = { id: snap.id, ...snap.data() };
         setStudent(s);
-        const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolName || "default"));
+        const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolId));
         if (logoSnap.exists()) setLogo(logoSnap.data().logo);
       }
       const sd = {};
