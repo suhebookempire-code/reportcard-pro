@@ -18,6 +18,14 @@ service cloud.firestore {
       return myUserDoc().data.schoolId;
     }
 
+    function myRole() {
+      return myUserDoc().data.role;
+    }
+
+    function isSchoolAdmin() {
+      return isSignedIn() && myRole() == "admin";
+    }
+
     // Schools: public read (needed for the school-entry link flow),
     // writes restricted to Master Admin only.
     match /schools/{schoolId} {
@@ -28,7 +36,11 @@ service cloud.firestore {
     // users/{uid}: role + schoolId mapping. Only the user themself or
     // Master Admin may read/write it.
     match /users/{uid} {
-      allow read, write: if isMaster() || (isSignedIn() && request.auth.uid == uid);
+      allow read: if isMaster() || (isSignedIn() && request.auth.uid == uid);
+      allow create: if isMaster()
+        || (isSignedIn() && request.auth.uid == uid)
+        || (isSchoolAdmin() && request.resource.data.role == "teacher" && request.resource.data.schoolId == mySchoolId());
+      allow update, delete: if isMaster() || (isSignedIn() && request.auth.uid == uid);
     }
 
     // Collections where documents carry a schoolId FIELD.
