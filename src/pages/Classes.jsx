@@ -42,16 +42,20 @@ export default function Classes() {
   const addClass = async () => {
     if (!form.name) return;
     setSaving(true);
-    const token = generateToken();
-    const pin = form.pin || generatePin();
-    await addDoc(collection(db, "classes"), {
-      ...form, pin, token, schoolId,
-      schoolName: school?.name || "",
-      createdAt: serverTimestamp()
-    });
-    setForm({ name:"", level:"Form 1", pin:"" });
-    setShowAdd(false);
-    await fetchData();
+    try {
+      const token = generateToken();
+      const pin = form.pin || generatePin();
+      await addDoc(collection(db, "classes"), {
+        ...form, pin, token, schoolId,
+        schoolName: school?.name || "",
+        createdAt: serverTimestamp()
+      });
+      setForm({ name:"", level:"Form 1", pin:"" });
+      setShowAdd(false);
+      await fetchData();
+    } catch (e) {
+      alert("Error saving class: " + e.message);
+    }
     setSaving(false);
   };
 
