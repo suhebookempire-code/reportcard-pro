@@ -1,8 +1,86 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMaster() {
+      return isSignedIn() && request.auth.token.master == true;
+    }
+
+    function myUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function mySchoolId() {
+      return myUserDoc().data.schoolId;
+    }
+
+    // Schools: public read (needed for the school-entry link flow),
+    // writes restricted to Master Admin only.
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if isMaster();
+    }
+
+    // users/{uid}: role + schoolId mapping. Only the user themself or
+    // Master Admin may read/write it.
+    match /users/{uid} {
+      allow read, write: if isMaster() || (isSignedIn() && request.auth.uid == uid);
+    }
+
+    // Collections where documents carry a schoolId FIELD.
+    match /students/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+    match /teachers/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+    match /classes/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+    match /attendance/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+    match /fees/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+    match /scores/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+    match /reportMeta/{docId} {
+      allow read, update, delete: if isMaster() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+      allow create: if isMaster() || (isSignedIn() && request.resource.data.schoolId == mySchoolId());
+    }
+
+    // Collections where the DOCUMENT ID itself is the schoolId.
+    match /schoolInfo/{schoolId} {
+      allow read, write: if isMaster() || (isSignedIn() && schoolId == mySchoolId());
+    }
+    match /schoolLogos/{schoolId} {
+      allow read, write: if isMaster() || (isSignedIn() && schoolId == mySchoolId());
+    }
+    match /examFees/{schoolId} {
+      allow read, write: if isMaster() || (isSignedIn() && schoolId == mySchoolId());
+    }
+    match /studentExams/{schoolId} {
+      allow read, write: if isMaster() || (isSignedIn() && schoolId == mySchoolId());
+    }
+    match /feeStructure/{schoolId} {
+      allow read, write: if isMaster() || (isSignedIn() && schoolId == mySchoolId());
+    }
+
+    // Default deny for anything not explicitly listed above.
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }
