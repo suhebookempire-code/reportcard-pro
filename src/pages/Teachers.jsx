@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
-import { db } from "../firebase/config";
-import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, where } from "firebase/firestore";
+import { db, firebaseConfig } from "../firebase/config";
+import { collection, getDocs, addDoc, deleteDoc, doc, setDoc, serverTimestamp, query, where } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { GENERAL_SUBJECTS, SPECIALTIES } from "../utils/grading";
 
 const BASE_URL = "https://reportcard-pro-suhebookempires-projects.vercel.app";
+const secondaryApp = initializeApp(firebaseConfig, "TeacherCreation");
+const teacherAuth = getAuth(secondaryApp);
 
 function generateToken() {
   return Math.random().toString(36).substring(2,10).toUpperCase() + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+function generateTempPassword() {
+  return Math.random().toString(36).slice(-8) + "Aa1!";
 }
 
 export default function Teachers() {
@@ -23,6 +31,8 @@ export default function Teachers() {
   const [copied, setCopied] = useState("");
   const [deleting, setDeleting] = useState("");
   const [classes, setClasses] = useState([]);
+  const [tempPasswords, setTempPasswords] = useState({});
+  const [resetSending, setResetSending] = useState("");
 
   const allSubjects = [...GENERAL_SUBJECTS, ...Object.values(SPECIALTIES).flat().filter((v,i,a)=>a.indexOf(v)===i)].sort();
 
@@ -39,14 +49,42 @@ export default function Teachers() {
   useEffect(() => { fetchTeachers(); }, []);
 
   const addTeacher = async () => {
-    if (!form.name || !form.subject) return;
+    if (!form.name || !form.subject || !form.email) {
+      alert("Name, subject, and email are all required to create a teacher login.");
+      return;
+    }
     setSaving(true);
-    const token = generateToken();
-    await addDoc(collection(db, "teachers"), { ...form, token, schoolId, schoolName, createdAt: serverTimestamp() });
-    setForm({ name:"", subject:"", phone:"", email:"" });
-    setShowAdd(false);
-    await fetchTeachers();
+    try {
+      const token = generateToken();
+      const tempPassword = generateTempPassword();
+      const cred = await createUserWithEmailAndPassword(teacherAuth, form.email, tempPassword);
+      const teacherRef = await addDoc(collection(db, "teachers"), { ...form, token, schoolId, schoolName, uid: cred.user.uid, createdAt: serverTimestamp() });
+      await setDoc(doc(db, "users", cred.user.uid), {
+        role: "teacher",
+        schoolId,
+        teacherId: teacherRef.id,
+        email: form.email,
+        createdAt: serverTimestamp()
+      });
+      setTempPasswords(prev => ({ ...prev, [teacherRef.id]: tempPassword }));
+      setForm({ name:"", subject:"", phone:"", email:"", assignedClasses:[] });
+      setShowAdd(false);
+      await fetchTeachers();
+    } catch (e) {
+      alert("Error creating teacher account: " + e.message);
+    }
     setSaving(false);
+  };
+
+  const sendReset = async (email) => {
+    setResetSending(email);
+    try {
+      await sendPasswordResetEmail(teacherAuth, email);
+      alert("Password reset email sent to " + email);
+    } catch (e) {
+      alert("Error sending reset email: " + e.message);
+    }
+    setResetSending("");
   };
 
   const deleteTeacher = async (id, name) => {
@@ -123,18 +161,23 @@ export default function Teachers() {
                 {teacher.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Phone: {teacher.phone}</div>}
               </div>
               <div style={{display:"flex",gap:"6px"}}>
-                <button onClick={()=>copyLink(teacher.token)} style={{padding:"7px 12px",background:copied===teacher.token?"rgba(16,185,129,0.2)":"rgba(234,179,8,0.1)",border:"1px solid "+(copied===teacher.token?"rgba(16,185,129,0.4)":"rgba(234,179,8,0.3)"),borderRadius:"8px",color:copied===teacher.token?"#10b981":"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
-                  {copied===teacher.token?"✓ Copied!":"Copy Link"}
+                <button onClick={()=>sendReset(teacher.email)} disabled={resetSending===teacher.email} style={{padding:"7px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
+                  {resetSending===teacher.email?"Sending...":"Send Password Reset"}
                 </button>
-                <button onClick={()=>{const url=BASE_URL+"/teacher/"+teacher.token;if(navigator.share){navigator.share({title:teacher.name+" — Teacher Portal",text:"Access your teacher portal for "+(school?.name||"school"),url:url});}else{navigator.clipboard.writeText(url);}}} style={{padding:"7px 12px",background:"rgba(99,102,241,0.15)",border:"1px solid rgba(99,102,241,0.4)",borderRadius:"8px",color:"#a5b4fc",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>📤 Share</button>
                 <button onClick={()=>deleteTeacher(teacher.id,teacher.name)} disabled={deleting===teacher.id} style={{padding:"7px 12px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"8px",color:"#fca5a5",fontSize:"12px",cursor:"pointer"}}>
                   {deleting===teacher.id?"...":"Delete"}
                 </button>
               </div>
             </div>
             <div style={{padding:"6px 10px",background:"rgba(255,255,255,0.02)",borderRadius:"6px",fontSize:"11px",color:"#475569",wordBreak:"break-all"}}>
-              {BASE_URL}/teacher/{teacher.token}
+              Login email: {teacher.email}
             </div>
+            {tempPasswords[teacher.id] && (
+              <div style={{marginTop:"8px",padding:"10px",background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",fontSize:"12px",color:"#6ee7b7"}}>
+                Temporary password: <strong>{tempPasswords[teacher.id]}</strong><br/>
+                Share this with {teacher.name} — they should change it after first login.
+              </div>
+            )}
           </div>
         ))}
       </div>

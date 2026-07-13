@@ -7,6 +7,7 @@ import EnterScores from "./pages/EnterScores";
 import ReportCard from "./pages/ReportCard";
 import MasterAdmin from "./pages/MasterAdmin";
 import TeacherPortal from "./pages/TeacherPortal";
+import TeacherHome from "./pages/TeacherHome";
 import Teachers from "./pages/Teachers";
 import Classes from "./pages/Classes";
 import ClassList from "./pages/ClassList";
@@ -26,6 +27,12 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function HomeRouter() {
+  const { role } = useAuth();
+  if (role === "teacher") return <TeacherHome />;
+  return <Dashboard />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -37,7 +44,7 @@ export default function App() {
           <Route path="/debug/:id" element={<Debug />} />
           <Route path="/teacher/:token" element={<TeacherPortal />} />
           <Route path="/class/:token" element={<ClassList />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><HomeRouter /></ProtectedRoute>} />
           <Route path="/add-student" element={<ProtectedRoute><AddStudent /></ProtectedRoute>} />
           <Route path="/enter-scores/:id" element={<ProtectedRoute><EnterScores /></ProtectedRoute>} />
           <Route path="/report/:id" element={<ProtectedRoute><ReportCard /></ProtectedRoute>} />

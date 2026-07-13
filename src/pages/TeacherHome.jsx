@@ -1,0 +1,240 @@
+import { useEffect, useState } from "react";
+import { db } from "../firebase/config";
+import { collection, getDocs, doc, getDoc, setDoc, serverTimestamp, query, where } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
+import { SEQUENCES, ACADEMIC_YEARS, getGrade } from "../utils/grading";
+
+export default function TeacherHome() {
+  const { user, school, logout } = useAuth();
+  const [teacher, setTeacher] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [idx, setIdx] = useState(0);
+  const [sequence, setSequence] = useState("Sequence 1");
+  const currentYear = ACADEMIC_YEARS[ACADEMIC_YEARS.length - 2];
+  const [year, setYear] = useState(currentYear);
+  const [mark, setMark] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [classes, setClasses] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        if (!user) return;
+        const userDocSnap = await getDoc(doc(db, "users", user.uid));
+        if (!userDocSnap.exists() || !userDocSnap.data().teacherId) {
+          setError("Teacher record not found. Contact your administrator.");
+          setLoading(false);
+          return;
+        }
+        const teacherId = userDocSnap.data().teacherId;
+        const schoolId = userDocSnap.data().schoolId;
+        const tSnap = await getDoc(doc(db, "teachers", teacherId));
+        if (!tSnap.exists()) {
+          setError("Teacher record not found. Contact your administrator.");
+          setLoading(false);
+          return;
+        }
+        const t = { id: tSnap.id, ...tSnap.data() };
+        setTeacher(t);
+        const assignedClassIds = t.assignedClasses || [];
+        let allStudents = [];
+        let clsList = [];
+        if (assignedClassIds.length > 0) {
+          const cSnap = await getDocs(query(collection(db, "classes"), where("schoolId", "==", schoolId)));
+          const allClasses = cSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          clsList = allClasses.filter(c => assignedClassIds.includes(c.id));
+          const sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", schoolId)));
+          allStudents = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } else {
+          const sSnap = await getDocs(query(collection(db, "students"), where("schoolId", "==", schoolId)));
+          allStudents = sSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          clsList = [...new Set(allStudents.map(s => s.classSection))].filter(Boolean).map(name => ({ name }));
+        }
+        setStudents(allStudents.sort((a, b) => a.name.localeCompare(b.name)));
+        setClasses(clsList);
+      } catch(e) { console.error("TeacherHome error:", e); setError("Error: " + e.message); }
+      setLoading(false);
+    };
+    load();
+  }, [user]);
+
+  useEffect(() => {
+    const loadMark = async () => {
+      if (!teacher || !selectedClass) return;
+      const classStudents = students.filter(s => s.classSection === selectedClass);
+      const student = classStudents[idx];
+      if (!student) return;
+      const key = year.replace(/[/]/g, "-") + "_" + sequence.replace(/ /g, "_");
+      const snap = await getDoc(doc(db, "scores", student.id + "_" + key));
+      const scores = snap.exists() ? snap.data().scores || {} : {};
+      setMark(scores[teacher.subject] ?? "");
+    };
+    loadMark();
+  }, [teacher, students, idx, sequence, year, selectedClass]);
+
+  const saveMark = async () => {
+    const classStudents = students.filter(s => s.classSection === selectedClass);
+    const student = classStudents[idx];
+    if (!teacher || classStudents.length === 0 || mark === "" || !student) return false;
+    setSaving(true);
+    try {
+      const key = year.replace(/[/]/g, "-") + "_" + sequence.replace(/ /g, "_");
+      const ref = doc(db, "scores", student.id + "_" + key);
+      const snap = await getDoc(ref);
+      const existing = snap.exists() ? snap.data().scores || {} : {};
+      existing[teacher.subject] = mark;
+      const existingTeacherNames = snap.exists() ? snap.data().teacherNames || {} : {};
+      existingTeacherNames[teacher.subject] = teacher.name.split(" ")[0];
+      await setDoc(ref, { studentId: student.id, schoolId: student.schoolId, sequence, year, scores: existing, teacherName: teacher.name, subject: teacher.subject, teacherNames: existingTeacherNames, updatedAt: serverTimestamp() }, { merge: true });
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      return true;
+    } catch (e) {
+      setSaving(false);
+      alert("Error saving mark: " + e.message);
+      return false;
+    }
+  };
+
+  const goNext = async () => {
+    await saveMark();
+    if (idx < students.length - 1) { setIdx(idx + 1); setMark(""); setSaved(false); }
+  };
+
+  const goPrev = () => {
+    if (idx > 0) { setIdx(idx - 1); setMark(""); setSaved(false); }
+  };
+
+  if (loading) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",alignItems:"center",justifyContent:"center",color:"#94a3b8",fontSize:"16px"}}>Loading...</div>;
+  if (error) return <div style={{minHeight:"100vh",background:"#0a0f1e",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"#ef4444",padding:"20px",textAlign:"center",fontSize:"15px",gap:"16px"}}>
+    <div>{error}</div>
+    <button onClick={logout} style={{padding:"10px 20px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#94a3b8",fontSize:"13px",cursor:"pointer"}}>Log Out</button>
+  </div>;
+
+  if (!selectedClass) return (
+    <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
+      <div style={{background:"linear-gradient(135deg,#0d1b3e,#1a3a6e)",borderBottom:"2px solid #eab308",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <div style={{fontSize:"11px",color:"#eab308",fontWeight:"bold"}}>ReportCard Pro — Teacher Portal</div>
+          <div style={{fontSize:"14px",fontWeight:"bold",color:"#fff",marginTop:"2px"}}>{teacher.name}</div>
+          <div style={{fontSize:"11px",color:"#94a3b8"}}>Subject: <span style={{color:"#eab308"}}>{teacher.subject}</span></div>
+        </div>
+        <button onClick={logout} style={{padding:"8px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#94a3b8",fontSize:"12px",cursor:"pointer"}}>Log Out</button>
+      </div>
+      <div style={{maxWidth:"580px",margin:"0 auto",padding:"16px"}}>
+        <h2 style={{color:"#fff",fontSize:"16px",margin:"0 0 16px"}}>Select Your Class / Choisir la Classe</h2>
+        {classes.length === 0 ? (
+          <div style={{textAlign:"center",padding:"40px",color:"#475569"}}>No classes assigned. Contact your administrator.</div>
+        ) : classes.map((cls,i) => {
+          const clsName = cls.name || cls;
+          const clsLevel = cls.level || "";
+          const count = students.filter(s => s.classSection === clsName).length;
+          return (
+            <div key={i} onClick={()=>setSelectedClass(clsName)} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(234,179,8,0.2)",borderRadius:"12px",padding:"16px",marginBottom:"10px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:"15px",fontWeight:"bold",color:"#fff"}}>{clsLevel} {clsLevel ? "-" : ""} {clsName}</div>
+                <div style={{fontSize:"11px",color:"#64748b",marginTop:"4px"}}>{count} student{count!==1?"s":""}</div>
+              </div>
+              <span style={{color:"#eab308",fontSize:"20px"}}>→</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const classStudents = students.filter(s => s.classSection === selectedClass);
+  const student = classStudents[idx];
+  const g = getGrade(mark);
+
+  return (
+    <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
+      <div style={{background:"linear-gradient(135deg,#0d1b3e,#1a3a6e)",borderBottom:"2px solid #eab308",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+        <div>
+          <div style={{fontSize:"11px",color:"#eab308",fontWeight:"bold"}}>ReportCard Pro — Teacher Portal / Portail Enseignant</div>
+          <div style={{fontSize:"14px",fontWeight:"bold",color:"#fff",marginTop:"2px"}}>{teacher.name}</div>
+          <div style={{fontSize:"11px",color:"#94a3b8"}}>Subject / Matiere: <span style={{color:"#eab308"}}>{teacher.subject}</span></div>
+        </div>
+        <button onClick={()=>setSelectedClass(null)} style={{padding:"6px 10px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:"#94a3b8",fontSize:"11px",cursor:"pointer"}}>Switch Class</button>
+      </div>
+
+      <div style={{maxWidth:"580px",margin:"0 auto",padding:"16px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginBottom:"12px"}}>
+          <div>
+            <label style={{display:"block",fontSize:"11px",color:"#94a3b8",marginBottom:"4px"}}>Year / Annee</label>
+            <select value={year} onChange={e=>{setYear(e.target.value);setMark("");}} style={{width:"100%",padding:"8px",background:"#1e293b",border:"1px solid #334155",borderRadius:"8px",color:"#fff",fontSize:"12px",owtline:"none"}}>
+              {ACADEMIC_YEARS.map(y=><option key={y}>{y}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{display:"block",fontSize:"11px",color:"#94a3b8",marginBottom:"4px"}}>Sequence</label>
+            <select value={sequence} onChange={e=>{setSequence(e.target.value);setMark("");}} style={{width:"100%",padding:"8px",background:"#1e293b",border:"1px solid #334155",borderRadius:"8px",color:"#fff",fontSize:"12px",outline:"none"}}>
+              {SEQUENCES.map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {classStudents.length === 0 ? (
+          <div style={{textAlign:"center",padding:"40px",color:"#475569",background:"rgba(255,255,255,0.02)",borderRadius:"12px"}}>
+            No students found for your subject.<br/>Aucun eleve pour cette matiere.
+          </div>
+        ) : (
+          <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",padding:"20px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}>
+              <span style={{fontSize:"12px",color:"#eab308",fontWeight:"bold"}}>{idx + 1} / {classStudents.length} students</span>
+              <span style={{fontSize:"11px",color:"#64748b"}}>{sequence}</span>
+            </div>
+
+            <div style={{fontSize:"17px",fontWeight:"bold",color:"#fff",marginBottom:"2px"}}>{student.name}</div>
+            <div style={{fontSize:"11px",color:"#64748b",marginBottom:"16px"}}>{student.level} · {student.classSection} · {student.section || "Grammar"}</div>
+
+            <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"8px",fontWeight:"bold"}}>
+              Mark for {teacher.subject} (out of 20 / sur 20)
+            </label>
+
+            <div style={{display:"flex",alignItems:"center",gap:"16px",marginBottom:"16px"}}>
+              <input
+                type="number" min="0" max="20" step="0.5"
+                value={mark}
+                onChange={e => setMark(e.target.value)}
+                style={{width:"100px",padding:"12px",background:"#1e293b",border:"2px solid #eab308",borderRadius:"8px",color:"#fff",fontSize:"24px",textAlign:"center",outline:"none"}}
+                placeholder="0-20"
+              />
+              {mark !== "" && (
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:"26px",fontWeight:"bold",color:g.color}}>{g.grade}</div>
+                  <div style={{fontSize:"10px",color:g.color}}>{g.remark} / {g.remarkFr}</div>
+                </div>
+              )}
+            </div>
+
+            <button onClick={async()=>{const ok=await saveMark();if(ok&&idx<classStudents.length-1){setTimeout(()=>{setIdx(i=>i+1);setMark("");setSaved(false);},800);}}} disabled={saving||mark===""} style={{width:"100%",padding:"14px",background:saved?"#10b981":"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"8px",color:saved?"#fff":"#0a0f1e",fontWeight:"bold",fontSize:"15px",cursor:mark===""?"not-allowed":"pointer",marginBottom:"10px",transition:"all 0.3s"}}>
+              {saving?"Saving...":saved?"✅ Saved! Moving to next...":"📝 Register & Save Mark"}
+            </button>
+
+            <div style={{display:"flex",gap:"8px"}}>
+              <button
+                onClick={goPrev}
+                disabled={idx === 0}
+                style={{flex:1,padding:"10px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"8px",color:idx===0?"#334155":"#94a3b8",fontSize:"12px",cursor:idx===0?"not-allowed":"pointer"}}>
+                Previous / Precedent
+              </button>
+              <button
+                onClick={goNext}
+                disabled={idx === classStudents.length - 1}
+                style={{flex:1,padding:"10px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:idx===classStudents.length-1?"#334155":"#eab308",fontSize:"12px",cursor:idx===classStudents.length-1?"not-allowed":"pointer",fontWeight:"bold"}}>
+                Save + Next / Enregistrer + Suivant
+              </button>
+            </div>
+          </div>
+        )}
+        <p style={{textAlign:"center",fontSize:"10px",color:"#334155",marginTop:"16px"}}>ReportCard Pro — Powered by Suh Ebook Empire</p>
+      </div>
+    </div>
+  );
+}
