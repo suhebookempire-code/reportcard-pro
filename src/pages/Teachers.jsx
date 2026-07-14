@@ -64,6 +64,7 @@ export default function Teachers() {
         schoolId,
         teacherId: teacherRef.id,
         email: form.email,
+        mustChangePassword: true,
         createdAt: serverTimestamp()
       });
       setTempPasswords(prev => ({ ...prev, [teacherRef.id]: tempPassword }));

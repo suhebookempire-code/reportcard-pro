@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -18,12 +18,15 @@ import AnnualReport from "./pages/AnnualReport";
 import FeeTracking from "./pages/FeeTracking";
 import Attendance from "./pages/Attendance";
 import Notifications from "./pages/Notifications";
+import ChangePassword from "./pages/ChangePassword";
 
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, mustChangePassword } = useAuth();
+  const location = useLocation();
   if (loading) return <div style={{color:"white",background:"#0a0f1e",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>Loading...</div>;
   const schoolCode = sessionStorage.getItem("schoolCode");
   if (!user && !schoolCode) return <Navigate to="/login" />;
+  if (mustChangePassword && location.pathname !== "/change-password") return <Navigate to="/change-password" />;
   return children;
 }
 
@@ -55,6 +58,7 @@ export default function App() {
           <Route path="/fees" element={<ProtectedRoute><FeeTracking /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

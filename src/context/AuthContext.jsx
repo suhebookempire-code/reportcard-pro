@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [school, setSchool] = useState(null);
   const [role, setRole] = useState(null);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
             setRole(userData.role || null);
+            setMustChangePassword(!!userData.mustChangePassword);
             resolvedSchoolId = userData.schoolId || null;
           }
         } catch (e) {
@@ -52,6 +54,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setSchool(null);
         setRole(null);
+        setMustChangePassword(false);
       }
       setLoading(false);
     });
@@ -62,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => { sessionStorage.removeItem("schoolCode"); sessionStorage.removeItem("schoolId"); sessionStorage.removeItem("schoolName"); return signOut(auth); };
 
   return (
-    <AuthContext.Provider value={{ user, school, role, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, school, role, loading, mustChangePassword, login, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

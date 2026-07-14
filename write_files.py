@@ -119,7 +119,7 @@ export default function ChangePassword() {
       <div style={{width:"100%",maxWidth:"400px"}}>
         <div style={{textAlign:"center",marginBottom:"24px"}}>
           <h1 style={{fontSize:"20px",fontWeight:"bold",color:"#fff",margin:"0 0 6px"}}>Set a New Password</h1>
-          <p style={{color:"#94a3b8",fontSize:"13px",margin:0}}>Choisissej un nouveau mot de passe</p>
+          <p style={{color:"#94a3b8",fontSize:"13px",margin:0}}>Choisissez un nouveau mot de passe</p>
         </div>
         <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(234,179,8,0.15)",borderRadius:"20px",padding:"28px 24px"}}>
           {error && (
@@ -134,7 +134,7 @@ export default function ChangePassword() {
             </div>
             <div style={{marginBottom:"24px"}}>
               <label style={{display:"block",fontSize:"12px",color:"#94a3b8",marginBottom:"6px"}}>Confirm New Password</label>
-              <input value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} type="password" required style={{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"10px",color:"#fff",fontSize:"14px",oux´line:"none",boxSizing:"border-box"}} />
+              <input value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} type="password" required style={{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"10px",color:"#fff",fontSize:"14px",outline:"none",boxSizing:"border-box"}} />
             </div>
             <button type="submit" disabled={saving} style={{width:"100%",padding:"14px",background:saving?"#92400e":"linear-gradient(135deg,#eab308,#ca8a04)",border:"none",borderRadius:"10px",color:"#0a0f1e",fontWeight:"bold",fontSize:"15px",cursor:saving?"not-allowed":"pointer"}}>
               {saving?"Saving...":"Set Password & Continue"}

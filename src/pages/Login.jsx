@@ -39,7 +39,7 @@ export default function Login() {
           <p style={{color:"#eab308",fontSize:"11px",margin:0,fontStyle:"italic"}}>Powered by Suh Ebook Empire</p>
         </div>
         <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(234,179,8,0.15)",borderRadius:"20px",padding:"28px 24px"}}>
-          <h2 style={{fontSize:"16px",fontWeight:"bold",color:"#fff",margin:"0 0 20px"}}>Administrator Sign In</h2>
+          <h2 style={{fontSize:"16px",fontWeight:"bold",color:"#fff",margin:"0 0 20px"}}>Sign In</h2>
           {error && (
             <div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"10px",padding:"12px",marginBottom:"16px",color:"#fca5a5",fontSize:"13px",display:"flex",gap:"8px",alignItems:"flex-start"}}>
               <span>⚠️</span><span>{error}</span>
