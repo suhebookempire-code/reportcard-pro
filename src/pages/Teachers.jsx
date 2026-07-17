@@ -96,10 +96,10 @@ export default function Teachers() {
     setDeleting("");
   };
 
-  const copyLink = (token) => {
-    const link = BASE_URL + "/teacher/" + token;
+  const copyLoginLink = (teacherId, email) => {
+    const link = BASE_URL + "/login?email=" + encodeURIComponent(email);
     navigator.clipboard.writeText(link);
-    setCopied(token);
+    setCopied(teacherId);
     setTimeout(() => setCopied(""), 2000);
   };
 
@@ -161,7 +161,10 @@ export default function Teachers() {
                 <div style={{fontSize:"12px",color:"#eab308"}}>Subject: {teacher.subject}</div>
                 {teacher.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Phone: {teacher.phone}</div>}
               </div>
-              <div style={{display:"flex",gap:"6px"}}>
+              <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                <button onClick={()=>copyLoginLink(teacher.id, teacher.email)} style={{padding:"7px 12px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#6ee7b7",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
+                  {copied===teacher.id?"Copied!":"Copy Login Link"}
+                </button>
                 <button onClick={()=>sendReset(teacher.email)} disabled={resetSending===teacher.email} style={{padding:"7px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
                   {resetSending===teacher.email?"Sending...":"Send Password Reset"}
                 </button>
