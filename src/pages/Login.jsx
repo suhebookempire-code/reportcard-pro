@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+
+  useEffect(() => {
+    const prefill = searchParams.get("email");
+    if (prefill) setEmail(prefill);
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -63,7 +69,7 @@ export default function Login() {
           </form>
           <div style={{marginTop:"20px",padding:"14px",background:"rgba(255,255,255,0.02)",borderRadius:"10px",textAlign:"center"}}>
             <p style={{fontSize:"12px",color:"#475569",margin:"0 0 4px"}}>Don't have access?</p>
-            <p style={{fontSize:"12px",color:"#64748b",margin:0}}>Contact your school administrator or visit <span style={{color:"#eab308"}}>suebem.vercel.app/master</span></p>
+            <p style={{fontSize:"12px",color:"#64748b",margin:0}}>Contact your school administrator or visit <span style={{color:"#eab308"}}>reportcard-pro-suhebookempires-projects.vercel.app/master</span></p>
           </div>
         </div>
         <p style={{textAlign:"center",fontSize:"10px",color:"#1e293b",marginTop:"16px"}}>© 2026 SUEBEM — Suh Ebook Empire. All rights reserved.</p>
