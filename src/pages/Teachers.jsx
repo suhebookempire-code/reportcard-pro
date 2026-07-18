@@ -19,6 +19,14 @@ function generateTempPassword() {
   return Math.random().toString(36).slice(-8) + "Aa1!";
 }
 
+function formatPhoneForWhatsApp(phone) {
+  if (!phone) return null;
+  let digits = phone.replace(/\D/g, "");
+  digits = digits.replace(/^0+/, "");
+  if (!digits.startsWith("237")) digits = "237" + digits;
+  return digits;
+}
+
 export default function Teachers() {
   const { user, school } = useAuth();
   const schoolId = sessionStorage.getItem("schoolId") || school?.id || user?.uid;
@@ -103,6 +111,22 @@ export default function Teachers() {
     setTimeout(() => setCopied(""), 2000);
   };
 
+  const shareViaWhatsApp = (teacher) => {
+    const link = BASE_URL + "/login?email=" + encodeURIComponent(teacher.email);
+    const tempPass = tempPasswords[teacher.id];
+    let message = "Hi " + teacher.name + ", here's your ReportCard Pro teacher login:\n\n" + link + "\n\nEmail: " + teacher.email;
+    if (tempPass) {
+      message += "\nTemporary password: " + tempPass + "\n\nYou'll be asked to set a new password the first time you log in.";
+    } else {
+      message += "\n\nUse your existing password, or tap \"Forgot password\" if you need a reset.";
+    }
+    const phoneDigits = formatPhoneForWhatsApp(teacher.phone);
+    const waUrl = phoneDigits
+      ? "https://wa.me/" + phoneDigits + "?text=" + encodeURIComponent(message)
+      : "https://wa.me/?text=" + encodeURIComponent(message);
+    window.open(waUrl, "_blank");
+  };
+
   return (
     <div style={{minHeight:"100vh",background:"#0a0f1e",color:"#e2e8f0"}}>
       <nav style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"8px"}}>
@@ -162,8 +186,11 @@ export default function Teachers() {
                 {teacher.phone && <div style={{fontSize:"11px",color:"#64748b"}}>Phone: {teacher.phone}</div>}
               </div>
               <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                <button onClick={()=>shareViaWhatsApp(teacher)} style={{padding:"7px 12px",background:"rgba(37,211,102,0.15)",border:"1px solid rgba(37,211,102,0.4)",borderRadius:"8px",color:"#25d366",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
+                  📱 Share via WhatsApp
+                </button>
                 <button onClick={()=>copyLoginLink(teacher.id, teacher.email)} style={{padding:"7px 12px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:"8px",color:"#6ee7b7",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
-                  {copied===teacher.id?"Copied!":"Copy Login Link"}
+                  {copied===teacher.id?"Copied!":"Copy Link"}
                 </button>
                 <button onClick={()=>sendReset(teacher.email)} disabled={resetSending===teacher.email} style={{padding:"7px 12px",background:"rgba(234,179,8,0.1)",border:"1px solid rgba(234,179,8,0.3)",borderRadius:"8px",color:"#eab308",fontSize:"12px",cursor:"pointer",fontWeight:"bold"}}>
                   {resetSending===teacher.email?"Sending...":"Send Password Reset"}
