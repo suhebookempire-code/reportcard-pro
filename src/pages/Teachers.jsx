@@ -29,7 +29,7 @@ function formatPhoneForWhatsApp(phone) {
 
 export default function Teachers() {
   const { user, school } = useAuth();
-  const schoolId = sessionStorage.getItem("schoolId") || school?.id || user?.uid;
+  const schoolId = school?.id || sessionStorage.getItem("schoolId") || user?.uid;
   const schoolName = school?.name || sessionStorage.getItem("schoolName") || "";
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
