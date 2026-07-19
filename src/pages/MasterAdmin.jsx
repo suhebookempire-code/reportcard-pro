@@ -21,7 +21,7 @@ export default function MasterAdmin() {
   const [lockTimer, setLockTimer] = useState(0);
   const [schools, setSchools] = useState([]);
   const [tab, setTab] = useState("schools");
-  const [newSchool, setNewSchool] = useState({name:"",location:"",phone:"",adminEmail:"",adminPassword:"",code:""});
+  const [newSchool, setNewSchool] = useState({name:"",location:"",phone:"",motto:"",adminEmail:"",adminPassword:"",code:"",offersGrammar:true,offersTechnical:false,offersBilingual:false});
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({text:"",type:"success"});
   const [copied, setCopied] = useState("");
@@ -89,6 +89,9 @@ export default function MasterAdmin() {
     if (newSchool.adminPassword.length < 6) {
       showMsg("Password must be at least 6 characters.", "error"); return;
     }
+    if (!newSchool.offersGrammar && !newSchool.offersTechnical) {
+      showMsg("Select at least one: Grammar or Technical.", "error"); return;
+    }
     setLoading(true);
     let adminUid = null;
     try {
@@ -115,7 +118,7 @@ export default function MasterAdmin() {
       });
     }
     showMsg("School registered successfully!");
-    setNewSchool({name:"",location:"",phone:"",adminEmail:"",adminPassword:"",code:""});
+    setNewSchool({name:"",location:"",phone:"",motto:"",adminEmail:"",adminPassword:"",code:"",offersGrammar:true,offersTechnical:false,offersBilingual:false});
     setTab("schools");
     await fetchSchools();
     setLoading(false);
@@ -165,6 +168,14 @@ export default function MasterAdmin() {
   );
 
   const styleInput = {width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"10px",color:"#fff",fontSize:"13px",outline:"none",boxSizing:"border-box",marginBottom:"10px"};
+
+  const offeringsLabel = (s) => {
+    const parts = [];
+    if (s.offersGrammar) parts.push("Grammar");
+    if (s.offersTechnical) parts.push("Technical");
+    if (s.offersBilingual) parts.push("Bilingual");
+    return parts.length ? parts.join(" + ") : "Not set";
+  };
 
   if (!isAuth) return (
     <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#0a0f1e,#1a0a00,#0d1b3e)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",fontFamily:"sans-serif"}}>
@@ -253,8 +264,13 @@ export default function MasterAdmin() {
               <h2 style={{color:"#fff",fontSize:"17px",fontWeight:"bold",margin:"0 0 4px"}}>{selectedSchool.name}</h2>
               <p style={{color:"#64748b",fontSize:"12px",margin:"0 0 2px"}}>{selectedSchool.location}</p>
               {selectedSchool.phone && <p style={{color:"#64748b",fontSize:"12px",margin:0}}>📞 {selectedSchool.phone}</p>}
+              {selectedSchool.motto && <p style={{color:"#eab308",fontSize:"11px",margin:"4px 0 0",fontStyle:"italic"}}>"{selectedSchool.motto}"</p>}
             </div>
             <span style={{fontSize:"11px",padding:"4px 12px",borderRadius:"20px",background:selectedSchool.active?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)",color:selectedSchool.active?"#10b981":"#ef4444",border:"1px solid "+(selectedSchool.active?"rgba(16,185,129,0.3)":"rgba(239,68,68,0.3)"),fontWeight:"bold"}}>{selectedSchool.active?"● Active":"● Inactive"}</span>
+          </div>
+          <div style={{background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:"10px",padding:"10px 12px",marginBottom:"12px"}}>
+            <div style={{fontSize:"10px",color:"#64748b",marginBottom:"4px",textTransform:"uppercase",letterSpacing:"1px"}}>School Offers</div>
+            <div style={{fontSize:"13px",color:"#a5b4fc",fontWeight:"bold"}}>{offeringsLabel(selectedSchool)}</div>
           </div>
           <div style={{background:"rgba(234,179,8,0.05)",border:"1px solid rgba(234,179,8,0.15)",borderRadius:"10px",padding:"12px",marginBottom:"16px"}}>
             <div style={{fontSize:"10px",color:"#64748b",marginBottom:"4px",textTransform:"uppercase",letterSpacing:"1px"}}>Access Code</div>
@@ -327,6 +343,7 @@ export default function MasterAdmin() {
                     <div style={{fontSize:"15px",color:"#fff",fontWeight:"bold",marginBottom:"2px"}}>{school.name}</div>
                     <div style={{fontSize:"11px",color:"#64748b"}}>{school.location}</div>
                     <div style={{fontSize:"11px",color:"#eab308",marginTop:"4px",letterSpacing:"1px"}}>Code: {school.code}</div>
+                    <div style={{fontSize:"10px",color:"#a5b4fc",marginTop:"2px"}}>{offeringsLabel(school)}</div>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"6px"}}>
                     <span style={{fontSize:"11px",padding:"3px 10px",borderRadius:"20px",background:school.active?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)",color:school.active?"#10b981":"#ef4444",border:"1px solid "+(school.active?"rgba(16,185,129,0.3)":"rgba(239,68,68,0.3)"),fontWeight:"bold"}}>{school.active?"● Active":"● Inactive"}</span>
@@ -344,12 +361,21 @@ export default function MasterAdmin() {
             <div style={{fontSize:"11px",color:"#64748b",marginBottom:"16px",background:"rgba(234,179,8,0.05)",border:"1px solid rgba(234,179,8,0.15)",borderRadius:"8px",padding:"10px"}}>
               Fill all fields carefully. The admin email and password will be used by the school administrator to log in.
             </div>
-            {[{name:"name",placeholder:"School Name *",type:"text",icon:"🏫"},{name:"location",placeholder:"Location / City *",type:"text",icon:"📍"},{name:"phone",placeholder:"Phone Number",type:"text",icon:"📞"},{name:"adminEmail",placeholder:"Admin Email * (login email)",type:"email",icon:"📧"},{name:"adminPassword",placeholder:"Admin Password * (min 6 chars)",type:"password",icon:"🔑"}].map(f=>(
+            {[{name:"name",placeholder:"School Name *",type:"text",icon:"🏫"},{name:"location",placeholder:"Location / City *",type:"text",icon:"📍"},{name:"phone",placeholder:"Phone Number",type:"text",icon:"📞"},{name:"motto",placeholder:"School Motto",type:"text",icon:"✨"},{name:"adminEmail",placeholder:"Admin Email * (login email)",type:"email",icon:"📧"},{name:"adminPassword",placeholder:"Admin Password * (min 6 chars)",type:"password",icon:"🔑"}].map(f=>(
               <div key={f.name} style={{position:"relative",marginBottom:"10px"}}>
                 <input value={newSchool[f.name]} onChange={e=>setNewSchool(s=>({...s,[f.name]:e.target.value}))} placeholder={f.placeholder} type={f.type} style={{...styleInput,marginBottom:0,paddingLeft:"36px"}} />
                 <span style={{position:"absolute",left:"12px",top:"50%",transform:"translateY(-50%)",fontSize:"14px"}}>{f.icon}</span>
               </div>
             ))}
+            <div style={{marginTop:"14px",marginBottom:"16px",background:"rgba(99,102,241,0.05)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:"10px",padding:"14px"}}>
+              <div style={{fontSize:"12px",color:"#a5b4fc",fontWeight:"bold",marginBottom:"10px"}}>🎓 School Offers (select all that apply)</div>
+              {[{key:"offersGrammar",label:"Grammar / General Education"},{key:"offersTechnical",label:"Technical / Vocational"},{key:"offersBilingual",label:"Bilingual (English + French streams)"}].map(o=>(
+                <label key={o.key} style={{display:"flex",alignItems:"center",gap:"10px",padding:"8px 0",cursor:"pointer",color:"#e2e8f0",fontSize:"13px"}}>
+                  <input type="checkbox" checked={newSchool[o.key]} onChange={e=>setNewSchool(s=>({...s,[o.key]:e.target.checked}))} />
+                  {o.label}
+                </label>
+              ))}
+            </div>
             <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
               <div style={{position:"relative",flex:1}}>
                 <input value={newSchool.code} onChange={e=>setNewSchool(s=>({...s,code:e.target.value}))} placeholder="Activation Code *" style={{...styleInput,marginBottom:0,paddingLeft:"36px"}} />
