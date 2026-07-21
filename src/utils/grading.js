@@ -36,12 +36,21 @@ export const GENERAL_SUBJECTS = [
   "French / Francais",
   "Mathematics / Mathematiques",
   "Literature in English / Litterature Anglaise",
+  "Geography / Geographie",
+  "Economics / Economie",
+  "History / Histoire",
   "Citizenship Education / Education a la Citoyennete",
+  "Commerce / Commerce",
   "Biology / Biologie",
   "Chemistry / Chimie",
   "Physics / Physique",
   "Computer Science / Informatique",
+  "Geology / Geologie",
   "Food and Nutrition / Alimentation et Nutrition",
+  "Human Biology / Biologie Humaine",
+  "Additional Mathematics / Mathematiques Additionnelles",
+  "Logic / Logique",
+  "Philosophy / Philosophie",
   "Food Science / Science Alimentaire",
   "Manual Labour / Travaux Manuels",
   "Sports / Sport",
@@ -112,4 +121,18 @@ export const SUBJECTS_BY_LEVEL = {
   "Form 5": [...GENERAL_SUBJECTS],
   "Lower Sixth": [...GENERAL_SUBJECTS],
   "Upper Sixth": [...GENERAL_SUBJECTS],
+};export const COEFFICIENTS_BY_LEVEL = {
+  "Form 1": { "English Language / Langue Anglaise":3,"Literature in English / Litterature Anglaise":2,"French / Francais":3,"Geography / Geographie":2,"History / Histoire":2,"Citizenship Education / Education a la Citoyennete":2,"Biology / Biologie":2,"Chemistry / Chimie":2,"Mathematics / Mathematiques":3,"Physics / Physique":2,"Computer Science / Informatique":2,"Food and Nutrition / Alimentation et Nutrition":2 },
+  "Form 2": { "English Language / Langue Anglaise":3,"Literature in English / Litterature Anglaise":2,"French / Francais":3,"Geography / Geographie":2,"History / Histoire":2,"Citizenship Education / Education a la Citoyennete":2,"Biology / Biologie":2,"Chemistry / Chimie":2,"Mathematics / Mathematiques":3,"Physics / Physique":2,"Computer Science / Informatique":2,"Food and Nutrition / Alimentation et Nutrition":2 },
+  "Form 3": { "English Language / Langue Anglaise":3,"Literature in English / Litterature Anglaise":2,"French / Francais":3,"Geography / Geographie":2,"Economics / Economie":2,"History / Histoire":2,"Citizenship Education / Education a la Citoyennete":2,"Biology / Biologie":2,"Chemistry / Chimie":2,"Mathematics / Mathematiques":3,"Physics / Physique":2,"Computer Science / Informatique":2,"Food and Nutrition / Alimentation et Nutrition":2,"Logic / Logique":2 },
+  "Form 4": { "English Language / Langue Anglaise":5,"Literature in English / Litterature Anglaise":5,"French / Francais":5,"Geography / Geographie":5,"Economics / Economie":5,"History / Histoire":5,"Citizenship Education / Education a la Citoyennete":5,"Commerce / Commerce":5,"Biology / Biologie":5,"Chemistry / Chimie":5,"Mathematics / Mathematiques":5,"Physics / Physique":5,"Computer Science / Informatique":5,"Geology / Geologie":5,"Food and Nutrition / Alimentation et Nutrition":5,"Human Biology / Biologie Humaine":5,"Additional Mathematics / Mathematiques Additionnelles":5,"Logic / Logique":5 },
+  "Form 5": { "English Language / Langue Anglaise":5,"Literature in English / Litterature Anglaise":5,"French / Francais":5,"Geography / Geographie":5,"Economics / Economie":5,"History / Histoire":5,"Citizenship Education / Education a la Citoyennete":5,"Commerce / Commerce":5,"Biology / Biologie":5,"Chemistry / Chimie":5,"Mathematics / Mathematiques":5,"Physics / Physique":5,"Computer Science / Informatique":5,"Geology / Geologie":5,"Food and Nutrition / Alimentation et Nutrition":5,"Human Biology / Biologie Humaine":5,"Additional Mathematics / Mathematiques Additionnelles":5,"Logic / Logique":5 },
+  "Lower Sixth": { "English Language / Langue Anglaise":5,"Literature in English / Litterature Anglaise":5,"French / Francais":5,"Geography / Geographie":5,"Economics / Economie":5,"History / Histoire":5,"Biology / Biologie":5,"Chemistry / Chimie":5,"Mathematics / Mathematiques":5,"Physics / Physique":5,"Computer Science / Informatique":5,"Geology / Geologie":5,"Food and Nutrition / Alimentation et Nutrition":5,"Additional Mathematics / Mathematiques Additionnelles":5,"Philosophy / Philosophie":5 },
+  "Upper Sixth": { "English Language / Langue Anglaise":5,"Literature in English / Litterature Anglaise":5,"French / Francais":5,"Geography / Geographie":5,"Economics / Economie":5,"History / Histoire":5,"Biology / Biologie":5,"Chemistry / Chimie":5,"Mathematics / Mathematiques":5,"Physics / Physique":5,"Computer Science / Informatique":5,"Geology / Geologie":5,"Food and Nutrition / Alimentation et Nutrition":5,"Additional Mathematics / Mathematiques Additionnelles":5,"Philosophy / Philosophie":5 },
 };
+
+export function getCoefficient(level, subject) {
+  const levelCoefs = COEFFICIENTS_BY_LEVEL[level];
+  if (levelCoefs && levelCoefs[subject] !== undefined) return levelCoefs[subject];
+  return 2;
+}
