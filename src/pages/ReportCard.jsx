@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { doc, getDoc, setDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useParams, Link } from "react-router-dom";
-import { SPECIALTIES, GENERAL_SUBJECTS, SEQUENCES, TERMS, ACADEMIC_YEARS, getGrade } from "../utils/grading";
+import { SPECIALTIES, GENERAL_SUBJECTS, SEQUENCES, TERMS, ACADEMIC_YEARS, getGrade, getCoefficient } from "../utils/grading";
+
+const CORE_SUBJECTS = ["English Language / Langue Anglaise","French / Francais","Mathematics / Mathematiques","Literature in English / Litterature Anglaise","Citizenship Education / Education a la Citoyennete","Biology / Biologie","Chemistry / Chimie","Physics / Physique"];
+const TECH_GENERAL_SUBJECTS = ["English Language / Langue Anglaise","French / Francais","Mathematics / Mathematiques","Literature in English / Litterature Anglaise","Citizenship Education / Education a la Citoyennete","Biology / Biologie"];
+const OTHER_SUBJECTS = ["Manual Labour / Travaux Manuels","Sports / Sport"];
+const OPTIONAL_FALLBACK = GENERAL_SUBJECTS.filter(s => !CORE_SUBJECTS.includes(s) && !OTHER_SUBJECTS.includes(s));
 
 export default function ReportCard() {
   const { id } = useParams();
@@ -10,7 +15,6 @@ export default function ReportCard() {
   const [allScores, setAllScores] = useState({});
   const [teachers, setTeachers] = useState({});
   const [autoTeachers, setAutoTeachers] = useState({});
-  const [coefs, setCoefs] = useState({});
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState("2026/2027");
   const [term, setTerm] = useState("First Term / Premier Trimestre");
@@ -45,14 +49,13 @@ export default function ReportCard() {
           const logoSnap = await getDoc(doc(db, "schoolLogos", s.schoolId));
           if (logoSnap.exists()) setLogo(logoSnap.data().logo);
           const telLine = [sd.phone?"Tel: "+sd.phone:"", sd.email?"Email: "+sd.email:""].filter(Boolean).join(" | ");
-          setHeader(prev => ({ ...prev, name: sd.name?.trim()||prev.name, tel: telLine||prev.tel }));
+          setHeader(prev => ({ ...prev, name: sd.name?.trim()||prev.name, tel: telLine||prev.tel, motto: sd.motto||prev.motto }));
         }
       }
       const infoSnap = await getDoc(doc(db, "reportMeta", id));
       if (infoSnap.exists()) {
         const d = infoSnap.data();
         setTeachers(d.teachers || {});
-        setCoefs(d.coefs || {});
         setClassSize(d.classSize || "");
         setPosition(d.position || "");
         setClassAvg(d.classAvg || "");
@@ -109,7 +112,7 @@ export default function ReportCard() {
 
   const saveMeta = async () => {
     setSaving(true);
-    await setDoc(doc(db, "reportMeta", id), { studentId: id, schoolId: student.schoolId, teachers, coefs, classSize, position, classAvg, decision, classMaster, principal });
+    await setDoc(doc(db, "reportMeta", id), { studentId: id, schoolId: student.schoolId, teachers, classSize, position, classAvg, decision, classMaster, principal });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -139,7 +142,7 @@ export default function ReportCard() {
   const SubjectTable = ({ title, titleFr, subjs }) => (
     <div style={{marginBottom:"6px"}}>
       <div style={{background:"#1e3a5f",padding:"3px 8px",fontSize:"10px",fontWeight:"bold",color:"#eab308",border:"1px solid #1e3a5f"}}>
-        {title} / {titleFr}
+        {student.language === "French" ? titleFr + " / " + title : title + " / " + titleFr}
       </div>
       <table style={{width:"100%",borderCollapse:"collapse"}}>
         <thead>
@@ -158,7 +161,7 @@ export default function ReportCard() {
           {subjs.map((subj, i) => {
             const avg = getTermAvg(subj);
             const grade = getGrade(avg ? parseFloat(avg) : null);
-            const coef = coefs[subj] || 2;
+            const coef = getCoefficient(student.level, subj);
             const total = avg ? (parseFloat(avg) * coef).toFixed(1) : "";
             return (
               <tr key={i} style={{background:i%2===0?"#fff":"#f8fafc"}}>
@@ -170,9 +173,7 @@ export default function ReportCard() {
                   </td>
                 ))}
                 <td style={{...cell,fontWeight:"bold",color:avg?(parseFloat(avg)>=10?"#059669":"#dc2626"):"#94a3b8"}}>{avg||"-"}</td>
-                <td style={cell}>
-                  <input value={coef} onChange={e=>setCoefs(c=>({...c,[subj]:e.target.value}))} style={{...inp,width:"24px"}} />
-                </td>
+                <td style={{...cell,fontWeight:"bold"}}>{coef}</td>
                 <td style={cell}>{total||"-"}</td>
                 <td style={{...cell,fontSize:"8px",color:grade.color}}>{avg?grade.remark:"-"}</td>
                 <td style={{...cell,fontSize:"8px"}}>{teachers[subj] || autoTeachers[subj] || "—"}</td>
@@ -258,14 +259,14 @@ export default function ReportCard() {
         {student.section === "Technical" ? (
           <>
             <SubjectTable title="Professional Subjects" titleFr="Matieres Professionnelles" subjs={SPECIALTIES[student.specialty]||[]} />
-            <SubjectTable title="General Subjects" titleFr="Matieres Generales" subjs={GENERAL_SUBJECTS.slice(0,6)} />
-            <SubjectTable title="Other Subjects" titleFr="Autres Matieres" subjs={["Manual Labour / Travaux Manuels","Sports / Sport"]} />
+            <SubjectTable title="General Subjects" titleFr="Matieres Generales" subjs={TECH_GENERAL_SUBJECTS} />
+            <SubjectTable title="Other Subjects" titleFr="Autres Matieres" subjs={OTHER_SUBJECTS} />
           </>
         ) : (
           <>
-            <SubjectTable title="Core Subjects" titleFr="Matieres Principales" subjs={GENERAL_SUBJECTS.slice(0,8)} />
-            <SubjectTable title="Optional Subjects" titleFr="Matieres Optionnelles" subjs={SPECIALTIES[student.specialty]||GENERAL_SUBJECTS.slice(8)} />
-            <SubjectTable title="Other Subjects" titleFr="Autres Matieres" subjs={["Manual Labour / Travaux Manuels","Sports / Sport"]} />
+            <SubjectTable title="Core Subjects" titleFr="Matieres Principales" subjs={CORE_SUBJECTS} />
+            <SubjectTable title="Optional Subjects" titleFr="Matieres Optionnelles" subjs={SPECIALTIES[student.specialty]||OPTIONAL_FALLBACK} />
+            <SubjectTable title="Other Subjects" titleFr="Autres Matieres" subjs={OTHER_SUBJECTS} />
           </>
         )}
 
